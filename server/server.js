@@ -8,7 +8,8 @@ app.use(express.json());
 app.use(cors());
 
 //api routes
-app.use('/',(req,res)=>res.send('Hellow'));
+app.use('/api/doctor', require('./routes/doctor.route'));
+app.use('/api/patient', require('./routes/patient.route'));
 
 //mongoDB connection
 connectDb();
