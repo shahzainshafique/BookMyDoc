@@ -6,7 +6,7 @@ exports.createDoctor = async(req,res)=>{
     await doctor.save();
     return res.status(200).send(doctor);
     } catch (error) {
-        res.sendStatus(500).send(error);
+        res.status(500).send(error);
     }
 }
 
@@ -20,7 +20,7 @@ exports.loginDoctor = async(req,res)=>{
             if(!!err||!isMatch){
                 return res.status(401).send({error:'Wrong Password!'});
             }
-            res.send(user);
+            res.send(doctor);
         })
     }catch(error){
         res.status(500).send(error);
