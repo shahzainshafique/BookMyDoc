@@ -10,6 +10,7 @@ app.use(cors());
 //api routes
 app.use('/api/doctor', require('./routes/doctor.route'));
 app.use('/api/patient', require('./routes/patient.route'));
+app.use('/api/admin', require('./routes/admin.route'));
 
 //mongoDB connection
 connectDb();
