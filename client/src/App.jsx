@@ -1,8 +1,6 @@
 import { useState } from 'react'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
       <div class="bg-white">
@@ -11,7 +9,7 @@ function App() {
             <div class="flex items-center justify-between h-16 lg:h-20">
                 <div class="flex-shrink-0">
                     <a href="#" title="" class="flex">
-                        <img class="w-auto h-8" src="https://cdn.rareblocks.xyz/collection/celebration/images/logo.svg" alt="" />
+                        <img class="w-auto h-8" src="/logo.png" alt="" />
                     </a>
                 </div>
 
