@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-const url = process.env.BACKEND_URL;
+const url = import.meta.env.VITE_BACKEND_URL;
 
 const useAuthCall = () => {
   const navigate = useNavigate();

@@ -21,7 +21,7 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       immutableCheck: false,
-      serializableCheck: fakse,
+      serializableCheck: false,
     }),
 });
 export const persistor = persistStore(store);
