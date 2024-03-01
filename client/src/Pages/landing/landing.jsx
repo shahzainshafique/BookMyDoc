@@ -14,7 +14,6 @@ const Landing = (props) => {
     <div className="home-container">
       <Helmet>
         <title>BookMyDoc</title>
-        <meta property="og:title" content="Medica template" />
       </Helmet>
       <div data-modal="practices" className="home-modal">
         <div className="home-practices">
@@ -139,9 +138,11 @@ const Landing = (props) => {
           <div className="home-left">
             <img
               alt="image"
-              src="/Branding/Heading.png"
+              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
               className="home-logo"
+              style={{width:'35px'}}
             />
+            <h3 style={{fontWeight:"bold", fontSize:"20px", marginLeft:"-20px"}}>BookMyDoc</h3>
             <nav className="home-links">
               <a href="#features" className="home-link">
                 Features
@@ -164,7 +165,7 @@ const Landing = (props) => {
               />
               <span className="home-text06">+0 123-456-789</span>
             </button>
-            <a href="#book" className="home-book button button-main">
+            <a href="/signup" className="home-book button button-main">
               <img
                 alt="image"
                 src="/Icons/calendar.svg"
@@ -847,6 +848,14 @@ const Landing = (props) => {
       <div className="home-footer">
         <div className="home-left1">
           <div className="home-brand">
+            <div className="flex flex-row">
+          <img
+              alt="image"
+              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
+              className="home-logo"
+              style={{width:'35px'}}
+            />
+            <h3 style={{fontWeight:"bold", fontSize:"20px",marginLeft:"10px", marginTop:"2px", color:"white"}}>BookMyDoc</h3></div>
             <p className="home-text92">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt.
@@ -877,7 +886,7 @@ const Landing = (props) => {
           </div>
           <div className="home-legal">
             <span className="home-copyright">
-              © 2022 finbest. All Rights Reserved.
+              © 2024 BookMyDoc (Test).
             </span>
             <span className="legal-link">Privacy Policy</span>
             <span className="legal-link">Terms of Use</span>
@@ -910,11 +919,10 @@ const Landing = (props) => {
                 24 Street Name, City FI 01234, RO
               </span>
               <a
-                href="mailto:contact@template.new?subject=Main"
+                href="#"
                 className="home-link14"
               >
-                contact@template.new
-              </a>
+                info@bookmydoc.com              </a>
               <a href="tel:(004) 234 - 5678" className="home-link15">
                 (004) 234 - 5678
               </a>
