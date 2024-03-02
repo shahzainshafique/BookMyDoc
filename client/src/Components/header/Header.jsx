@@ -15,7 +15,7 @@ function classNames(...classes) {
 
 export default function Header() {
   return (
-    <Disclosure as="nav" className="bg-blue-700">
+    <Disclosure as="nav" className="bg-blue-600">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -33,7 +33,6 @@ export default function Header() {
                 </Disclosure.Button>
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
                     {navigation.map((item) => (
