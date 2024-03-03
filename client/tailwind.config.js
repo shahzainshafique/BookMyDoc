@@ -56,7 +56,6 @@ export default {
       ],
     },
   },
-  purge: ["./src/**/*.js", "./src/**/*.jsx"],
 
   plugins: [],
 };
