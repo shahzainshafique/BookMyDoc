@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 
 import StepCounter from "./StepCounter";
 import Field from "../common/Field";
-import {fields} from '../../Constants/data';
+import { fields } from "../../Constants/data";
 
 const StepForm = () => {
   const [formStep, setFormStep] = useState(1);
@@ -33,9 +33,9 @@ const StepForm = () => {
     resolver: yupResolver(registerSchema),
   });
 
-  const renderFields = (column) => {
+  const renderFields = (step) => {
     return fields.map((field, index) => {
-      if (field.column === column) {
+      if (field.step === step) {
         return (
           <Field
             key={index}
@@ -52,9 +52,7 @@ const StepForm = () => {
   };
 
   const handleNextStep = () => {
-    
-setFormStep((prevStep) => 
- prevStep + 1);
+    setFormStep((prevStep) => prevStep + 1);
   };
 
   const handlePreviousStep = () => {
@@ -63,42 +61,40 @@ setFormStep((prevStep) =>
 
   const onSubmit = (data) => {
     console.log("Form data:", data);
-    
   };
   return (
     <section className="bg-gray-50">
       <div className="flex space-y-4 flex-col items-center my-5 px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <StepCounter currentStep={formStep} setFormStep={setFormStep}/>
+        <StepCounter currentStep={formStep} setFormStep={setFormStep} />
 
         <div className="w-full flex-row space-x-9 bg-white rounded-lg shadow light:border md:mt-0 sm:max-w-md xl:p-0 light:bg-gray-800 light:border-gray-700">
           <div className="w-full p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl light:text-white">
               {formStep === 1
                 ? "Please enter personal details"
-                : "Please enter additional details"}
+                : formStep === 2
+                ? "Please enter additional details"
+                : "Please review the details"}
             </h1>
             <form
               className="space-y-4 md:space-y-6 flex flex-col items-center justify-center"
               onSubmit={handleSubmit(handleNextStep)}
             >
-              <div className="flex flex-row space-x-11">
-                <div className="flex flex-col space-y-5 items-center xl:flex-col xl:justify-between w-full">
-                  {formStep === 1 && renderFields(1)}
-                </div>
-                <div className="flex flex-col items-center xl:flex-col xl:justify-between w-full">
-                  {formStep === 1 && renderFields(2)}
-                </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {formStep === 1 && renderFields(1)}
+                {formStep === 2 && renderFields(2)}
+                {formStep === 3 && renderFields(3)}
               </div>
 
               <div className="flex justify-between w-full">
-                {formStep > 1 && formStep<3 && (
+                {formStep > 1 && formStep < 3 && (
                   <button
-                  type="submit"
-                  onClick={handlePreviousStep}
-                  className="w-full text-black border border-black mx-5 bg-white hover:bg-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
-                >
-                  Previous
-                </button>
+                    type="submit"
+                    onClick={handlePreviousStep}
+                    className="w-full text-black border border-black mx-5 bg-white hover:bg-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                  >
+                    Previous
+                  </button>
                 )}
 
                 <button
