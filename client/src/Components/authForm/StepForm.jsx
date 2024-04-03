@@ -11,7 +11,7 @@ import { fields } from "../../Constants/data";
 const StepForm = () => {
   const [formStep, setFormStep] = useState(1);
 
-  const registerSchema = object().shape({
+  const stepOneScehma = object().shape({
     firstname: string()
       .max(20, "Maximum 20 characters!")
       .required("First Name is required!"),
@@ -24,13 +24,19 @@ const StepForm = () => {
     specialization: string().required("Specialization is required!"),
     clinic: string().required("Clinic is required!"),
   });
+  const stepTwoScehma = object().shape({
+   
+    email: string().email().required("Email is required!"),
+    password: string().required().min(8,"Password should be of minimum 8 characters")
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(registerSchema),
+    resolver: (step)=>{ if(step==1) return yupResolver;
+    if(step==2) return yupResolver; },
   });
 
   const renderFields = (step) => {
@@ -50,9 +56,12 @@ const StepForm = () => {
       }
     });
   };
+  
+  
 
   const handleNextStep = () => {
     setFormStep((prevStep) => prevStep + 1);
+    
   };
 
   const handlePreviousStep = () => {
