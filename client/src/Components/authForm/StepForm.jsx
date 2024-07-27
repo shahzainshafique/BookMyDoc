@@ -11,32 +11,41 @@ import { fields } from "../../Constants/data";
 const StepForm = () => {
   const [formStep, setFormStep] = useState(1);
 
-  const stepOneScehma = object().shape({
+  const schema = [ object().shape({
     firstname: string()
       .max(20, "Maximum 20 characters!")
       .required("First Name is required!"),
     lastname: string()
       .max(20, "Maximum 20 characters!")
       .required("Last Name is required!"),
-    email: string().email().required("Email is required!"),
     workingDays: string().required("Working Days are required!"),
     phone: number().required("Phone number is required!"),
     specialization: string().required("Specialization is required!"),
     clinic: string().required("Clinic is required!"),
-  });
-  const stepTwoScehma = object().shape({
-   
+  }), object().shape({
     email: string().email().required("Email is required!"),
     password: string().required().min(8,"Password should be of minimum 8 characters")
-  });
-
+  }),object().shape({
+    email: string().email().required("Email is required!"),
+    password: string().required().min(8,"Password should be of minimum 8 characters")
+  })];
+console.log(formStep);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: (step)=>{ if(step==1) return yupResolver;
-    if(step==2) return yupResolver; },
+    resolver: yupResolver(schema[formStep-1])
+    , defaultValues:{
+    firstname: "",
+    lastname: "",
+    workingDays: "",
+    phone: "",
+    specialization: "",
+    clinic: "",
+    email: "",
+    password: ""
+    },
   });
 
   const renderFields = (step) => {
@@ -51,6 +60,7 @@ const StepForm = () => {
             regVal={field.name}
             register={register}
             errors={errors}
+            disabled={field.disabled}
           />
         );
       }
@@ -59,8 +69,13 @@ const StepForm = () => {
   
   
 
-  const handleNextStep = () => {
+  const handleNextStep = (data) => {
+    if(formStep<3){
     setFormStep((prevStep) => prevStep + 1);
+    }
+    if(formStep == 3){
+      console.log(data);
+    }
     
   };
 
@@ -68,9 +83,7 @@ const StepForm = () => {
     setFormStep((prevStep) => prevStep - 1);
   };
 
-  const onSubmit = (data) => {
-    console.log("Form data:", data);
-  };
+  
   return (
     <section className="bg-gray-50">
       <div className="flex space-y-4 flex-col items-center my-5 px-6 py-8 mx-auto md:h-screen lg:py-0">
