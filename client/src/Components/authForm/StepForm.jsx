@@ -8,9 +8,12 @@ import StepCounter from "./StepCounter";
 import Field from "../common/Field";
 import { fields } from "../../Constants/data";
 
+import useAuthcall from "../../Hooks/useAuthCall";
+
+
 const StepForm = () => {
   const [formStep, setFormStep] = useState(1);
-
+  const { regDoctor } = useAuthcall();
   const schema = [ object().shape({
     firstname: string()
       .max(20, "Maximum 20 characters!")
@@ -69,12 +72,15 @@ console.log(formStep);
   
   
 
-  const handleNextStep = (data) => {
+  const handleNextStep = async (data) => {
     if(formStep<3){
     setFormStep((prevStep) => prevStep + 1);
     }
     if(formStep == 3){
       console.log(data);
+      
+      const signUpRes = await regDoctor(data);
+      console.log(signUpRes);
     }
     
   };

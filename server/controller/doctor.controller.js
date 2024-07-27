@@ -3,9 +3,11 @@ const Doctor = require('../models/Doctors.model');
 exports.createDoctor = async(req,res)=>{
     try {
     const doctor = new Doctor(req.body);
+    console.log('doc',doctor);
     await doctor.save();
     return res.status(200).send(doctor);
     } catch (error) {
+        console.log('ere',error)
         res.status(500).send(error);
     }
 }
