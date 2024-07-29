@@ -32,7 +32,6 @@ const StepForm = () => {
     email: string().email().required("Email is required!"),
     password: string().required().min(8,"Password should be of minimum 8 characters")
   })];
-console.log(formStep);
   const {
     register,
     handleSubmit,
@@ -132,6 +131,9 @@ console.log(formStep);
                   {formStep === 3 ? "Submit" : "Save and Next"}
                 </button>
               </div>
+                  {formStep === 1 ?  <p class="text-sm font-light text-gray-500 light:text-gray-400">
+                          Already have an account? <a href="logindoc" class="font-medium text-primary-600 hover:underline light:text-primary-500">Login here</a>
+                      </p>:""}
             </form>
           </div>
         </div>
