@@ -29,8 +29,23 @@ const useAuthCall = () => {
       console.log(error);
     }
   };
+  const loginDoctor = async (userData) => {
+    dispatch(fetchStart());
+    try {
+      const { data } = await axios.post(`${url}/api/doctor/login`, userData);
+      if (!data.error) {
+        dispatch(loginSuccess(data));
+        navigate("/doctor");
+      }
+      return data;
+    } catch (error) {
+      alert(error.response.data.error);
+      dispatch(fetchFail());
+    }
+  };
   return {
     regDoctor,
+    loginDoctor,
   };
 };
 
