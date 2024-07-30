@@ -7,6 +7,9 @@ exports.createDoctor = async (req, res) => {
     return res.status(200).send(doctor);
   } catch (error) {
     console.log("ere", error);
+    if (error.code === 11000){
+        res.status(409).send({error:"Email already exists!"});
+    }
     res.status(500).send(error);
   }
 };

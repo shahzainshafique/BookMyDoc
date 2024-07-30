@@ -25,6 +25,7 @@ const useAuthCall = () => {
       dispatch(registerSuccess(data));
       navigate("/doctor");
     } catch (error) {
+      alert(error.response.data.error);
       dispatch(fetchFail());
       console.log(error);
     }

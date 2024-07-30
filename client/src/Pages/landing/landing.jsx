@@ -165,7 +165,7 @@ const Landing = (props) => {
               />
               <span className="home-text06">+0 123-456-789</span>
             </button>
-            <a href="/signup" className="home-book button button-main">
+            <a href="/regDoc" className="home-book button button-main">
               <img
                 alt="image"
                 src="/Icons/calendar.svg"
