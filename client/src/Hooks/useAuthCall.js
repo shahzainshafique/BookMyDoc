@@ -22,8 +22,10 @@ const useAuthCall = () => {
     try {
       const { data } = await axios.post(`${url}/api/doctor/signup`, userData);
       console.log(data);
-      dispatch(registerSuccess(data));
-      navigate("/doctor");
+      if(!data.error){
+        dispatch(registerSuccess(data));
+        navigate("/doctor");
+      }
     } catch (error) {
       alert(error.response.data.error);
       dispatch(fetchFail());
