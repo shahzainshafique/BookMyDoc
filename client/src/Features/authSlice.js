@@ -17,10 +17,10 @@ const authSlice = createSlice({
     },
     loginSuccess: (state, action) => {
       state.loading = false;
-      state.currentUser = action.payload?.user?.email;
-      state.userId = action.payload?.user.id;
-      state.token = action.payload?.user?.key;
-      state.userType = action.payload?.userType;
+      state.currentUser = action?.email;
+      state.userId = action?._id;
+      state.token = action?.key || "";
+      state.userType = action?.userType || "";
     },
     logoutSuccess: (state) => {
       state.loading = false;

@@ -28,6 +28,7 @@ exports.loginDoctor = async (req, res) => {
         console.log("in here");
         return res.status(401).send({ error: "Wrong Password!" });
       }
+      console.log('pas');
       return res.status(200).send(doctor);
     });
   } catch (error) {
