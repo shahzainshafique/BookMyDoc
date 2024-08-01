@@ -11,6 +11,7 @@ app.use(cors());
 app.use('/api/doctor', require('./routes/doctor.route'));
 app.use('/api/patient', require('./routes/patient.route'));
 app.use('/api/admin', require('./routes/admin.route'));
+app.use('/api/otp', require('./routes/otp.route'));
 
 //mongoDB connection
 connectDb();
