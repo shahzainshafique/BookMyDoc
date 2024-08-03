@@ -7,7 +7,7 @@ const OTP = require('../models/Otp.model');
 
 //helper functions
 const generateOtp = (length = 6) => {
-    return crypto.randomBytes(length).toString('hex').substring(0,length);
+    return crypto.randomBytes(length).toString().substring(0,length);
 }
 
 const sendOtpEmail = async(email, otp) => {
@@ -55,6 +55,7 @@ exports.requestOtp = async (req,res) => {
     const {email, userType} = req.body;
     try{
     const otp = generateOtp();
+    console.log(otp);
     const otpEntry = new OTP({email, userType, otp });
     await otpEntry.save();
     await sendOtpEmail(email, otp);
