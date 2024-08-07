@@ -22,7 +22,7 @@ const useAuthCall = () => {
     try {
       const { data } = await axios.post(`${url}/api/doctor/signup`, userData);
       console.log(data);
-      if(!data.error){
+      if (!data.error) {
         dispatch(registerSuccess(data));
         navigate("/doctor");
       }
@@ -43,7 +43,22 @@ const useAuthCall = () => {
       }
       return data;
     } catch (error) {
-      console.log('eer',error)
+      alert(error.response.data.error);
+      dispatch(fetchFail());
+    }
+  };
+  const verifyOtp = async (userData) => {
+    dispatch(fetchStart());
+    try {
+      const { data } = await axios.post(`${url}/api/otp/request-otp`, userData);
+      log(data);
+      if (!data.error) {
+        dispatch(loginSuccess(data));
+        navigate("/doctor");
+      }
+      return data;
+    } catch (error) {
+      console.log("eer", error);
       alert(error.response.data.error);
       dispatch(fetchFail());
     }
@@ -51,6 +66,7 @@ const useAuthCall = () => {
   return {
     regDoctor,
     loginDoctor,
+    verifyOtp,
   };
 };
 

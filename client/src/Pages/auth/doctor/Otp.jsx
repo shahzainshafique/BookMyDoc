@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-
+import { verifyOtp } from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
     .fill(null)
@@ -19,6 +19,7 @@ const Otp = () => {
     if (index == inputs.length - 1 && allValuesPresent) {
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
+        verifyOtp();
         setDisabledField(true);
       }, 1000);
     }
