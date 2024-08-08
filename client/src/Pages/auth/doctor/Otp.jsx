@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { verifyOtp } from "../../../Hooks/useAuthCall";
+// import verifyOtp from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
     .fill(null)
@@ -17,9 +17,10 @@ const Otp = () => {
       (input) => input.current && input.current.value !== ""
     );
     if (index == inputs.length - 1 && allValuesPresent) {
+      console.log('here');
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
-        verifyOtp();
+        // verifyOtp();
         setDisabledField(true);
       }, 1000);
     }
@@ -37,6 +38,10 @@ const Otp = () => {
       inputs[index].current.value = "";
       focusInput(inputs, index - 1);
     }
+  };
+  const handleSubmit = (e) =>{
+    e.preventDefault();
+    console.log('submitted')
   };
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -66,8 +71,10 @@ const Otp = () => {
           </div>
           <div className="max-w-[260px] mx-auto mt-4">
             <button
+              onClick={handleSubmit}
               type="submit"
-              className="w-full inline-flex justify-center whitespace-nowrap rounded-lg bg-primary-600 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-950/10 hover:bg-indigo-600 focus:outline-none focus:ring focus:ring-indigo-300 focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300 transition-colors duration-150"
+              disabled = {!disabledField}
+              className="w-full inline-flex justify-center whitespace-nowrap disabled:bg-gray-600 rounded-lg bg-primary-600 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-950/10 hover:bg-indigo-600 focus:outline-none focus:ring focus:ring-indigo-300 focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300 transition-colors duration-150"
             >
               Verify Account
             </button>
