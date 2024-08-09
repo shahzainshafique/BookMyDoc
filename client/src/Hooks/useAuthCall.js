@@ -47,15 +47,11 @@ const useAuthCall = () => {
       dispatch(fetchFail());
     }
   };
-  const verifyOtp = async (userData) => {
+  const reqOTP = async (userData) => {
     dispatch(fetchStart());
     try {
       const { data } = await axios.post(`${url}/api/otp/request-otp`, userData);
-      log(data);
-      if (!data.error) {
-        dispatch(loginSuccess(data));
-        navigate("/doctor");
-      }
+      console.log(data);
       return data;
     } catch (error) {
       console.log("eer", error);
@@ -66,7 +62,7 @@ const useAuthCall = () => {
   return {
     regDoctor,
     loginDoctor,
-    verifyOtp,
+    reqOTP,
   };
 };
 

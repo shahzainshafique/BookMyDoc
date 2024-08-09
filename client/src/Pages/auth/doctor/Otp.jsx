@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useAuthCall from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
@@ -6,7 +6,11 @@ const Otp = () => {
     .map(() => useRef(null));
 
   const [disabledField, setDisabledField] = useState(false);
-  const {verifyOtp} = useAuthCall();
+  const { reqOTP } = useAuthCall();
+  const userEmail = "b1s3i6thow@vafyxh.com";
+  useEffect(()=>{
+    reqOTP(userEmail);
+  },[]);
   const focusInput = (inputs, index) => {
     inputs[index].current.focus();
   };

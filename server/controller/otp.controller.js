@@ -55,7 +55,7 @@ exports.requestOtp = async (req,res) => {
     const {email, userType} = req.body;
     try{
     const otp = generateOtp();
-    console.log(otp);
+    console.log(req.body);
     const otpEntry = new OTP({email, userType, otp });
     await otpEntry.save();
     await sendOtpEmail(email, otp);
