@@ -1,11 +1,12 @@
 import React, { useRef, useState } from "react";
-// import verifyOtp from "../../../Hooks/useAuthCall";
+import useAuthCall from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
     .fill(null)
     .map(() => useRef(null));
 
   const [disabledField, setDisabledField] = useState(false);
+  const {verifyOtp} = useAuthCall();
   const focusInput = (inputs, index) => {
     inputs[index].current.focus();
   };
@@ -20,7 +21,7 @@ const Otp = () => {
       console.log('here');
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
-        // verifyOtp();
+        verifyOtp(otpValue);
         setDisabledField(true);
       }, 1000);
     }
