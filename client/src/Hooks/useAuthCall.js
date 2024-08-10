@@ -48,6 +48,7 @@ const useAuthCall = () => {
     }
   };
   const reqOTP = async (userData) => {
+    console.log(userData);
     dispatch(fetchStart());
     try {
       const { data } = await axios.post(`${url}/api/otp/request-otp`, userData);

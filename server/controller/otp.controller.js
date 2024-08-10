@@ -7,7 +7,7 @@ const OTP = require('../models/Otp.model');
 
 //helper functions
 const generateOtp = (length = 6) => {
-    return crypto.randomBytes(length).toString().substring(0,length);
+    return crypto.randomInt(1000, 10000).toString();
 }
 
 const sendOtpEmail = async(email, otp) => {

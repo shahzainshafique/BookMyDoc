@@ -7,9 +7,9 @@ const Otp = () => {
 
   const [disabledField, setDisabledField] = useState(false);
   const { reqOTP } = useAuthCall();
-  const userEmail = "b1s3i6thow@vafyxh.com";
+  const userEmail = "infinitegamer9439@gmail.com";
   useEffect(()=>{
-    reqOTP(userEmail);
+    reqOTP({email:userEmail, userType: 'doctor'});
   },[]);
   const focusInput = (inputs, index) => {
     inputs[index].current.focus();
@@ -25,7 +25,7 @@ const Otp = () => {
       console.log('here');
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
-        verifyOtp(otpValue);
+        // verifyOtp(otpValue);
         setDisabledField(true);
       }, 1000);
     }
