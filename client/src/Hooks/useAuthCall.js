@@ -68,7 +68,7 @@ const useAuthCall = () => {
       otpData
     );
     console.log(data);
-    if (status == 200) alert("OTP Verified");
+    alert(data.message);
   };
   return {
     regDoctor,

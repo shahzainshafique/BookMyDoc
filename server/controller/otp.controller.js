@@ -16,8 +16,8 @@ const sendOtpEmail = async (email, otp) => {
     port: 587,
     secure: false, // Use `true` for port 465, `false` for all other ports
     auth: {
-      user: "x7t0swzq86xchs0@tempmail.us.com",
-      pass: "qnhllwkmlbvxyu3sd6s3yyswr5jq6z",
+      user: "",
+      pass: "",
     },
   });
 
