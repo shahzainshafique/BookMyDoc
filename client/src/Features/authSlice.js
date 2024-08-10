@@ -9,7 +9,6 @@ const authSlice = createSlice({
     error: false,
     token: null,
     userType: null,
-    email: ""
   },
   reducers: {
     fetchStart: (state) => {
@@ -38,9 +37,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = true;
     },
-    fetchUserEmail: (state) =>{
-      state.email = state.currentUser;
-    }
+    
   },
 });
 export const {
@@ -51,7 +48,6 @@ export const {
     logoutSuccess,
     registerSuccess,
     fetchFail,
-    fetchUserEmail
   },
 } = authSlice;
 

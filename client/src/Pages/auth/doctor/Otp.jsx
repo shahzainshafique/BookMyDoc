@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from 'react-redux';
 import useAuthCall from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
@@ -7,7 +8,8 @@ const Otp = () => {
 
   const [disabledField, setDisabledField] = useState(false);
   const { reqOTP } = useAuthCall();
-  const userEmail = "infinitegamer9439@gmail.com";
+  const userEmail = useSelector((state) => state.auth.currentUser);
+  console.log(userEmail);
   useEffect(()=>{
     reqOTP({email:userEmail, userType: 'doctor'});
   },[]);
@@ -48,13 +50,26 @@ const Otp = () => {
     e.preventDefault();
     console.log('submitted')
   };
+
+  const maskEmail=(email)=> {
+    const [localPart, domainPart] = email.split('@');
+  
+    const maskedLocal = localPart.slice(0, 1) + '*'.repeat(Math.max(localPart.length - 2, 0));
+  
+    const domainName = domainPart.split('.')[0];
+    const topLevelDomain = domainPart.slice(domainName.length);
+  
+    const maskedDomain = domainName.charAt(0) + '*'.repeat(Math.max(domainName.length - 1, 0));
+  
+    return `${maskedLocal}@${maskedDomain}${topLevelDomain}`;
+  }
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
       <div className="max-w-md mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
         <header className="mb-8">
           <h1 className="text-2xl font-bold mb-1">Email Verification</h1>
           <p className="text-[15px] text-slate-500">
-            Enter the 4-digit verification code that was sent to your email.
+            Enter the 4-digit verification code that was sent to your email: <strong>{maskEmail(userEmail) || '****@****.com'}</strong>
           </p>
         </header>
         <form id="otp-form">
