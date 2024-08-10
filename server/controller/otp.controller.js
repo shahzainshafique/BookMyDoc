@@ -56,11 +56,21 @@ exports.requestOtp = async (req, res) => {
   }
 };
 exports.verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  const otpFound = await OTP.findOne({ email });
+  try {
+    const { email, otp } = req.body;
+    const otpFound = await OTP.findOne({ email });
 
-  if (!otpFound) {
-    return res.status(400).send({ message: "OTP not found for this email!" });
+    if (!otpFound) {
+      return res.status(400).send({ message: "OTP not found for this email!" });
+    }
+    const isMatched = otpFound.otp == otp;
+    if (!isMatched) {
+      return res.status(401).send({ message: "Incorrect OTP!" });
+    }
+
+    res.status(200).send({ message: "OTP Verified successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal Server Error" });
   }
-  res.status(200).send({ email, otp, otpFound });
 };
