@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import useAuthCall from "../../../Hooks/useAuthCall";
 const Otp = () => {
   const otpInputs = Array(4)
@@ -7,12 +7,12 @@ const Otp = () => {
     .map(() => useRef(null));
 
   const [disabledField, setDisabledField] = useState(false);
-  const { reqOTP } = useAuthCall();
+  const { reqOTP, verifyOtp } = useAuthCall();
   const userEmail = useSelector((state) => state.auth.currentUser);
   console.log(userEmail);
-  useEffect(()=>{
-    reqOTP({email:userEmail, userType: 'doctor'});
-  },[]);
+  useEffect(() => {
+    reqOTP({ email: userEmail, userType: "doctor" });
+  }, []);
   const focusInput = (inputs, index) => {
     inputs[index].current.focus();
   };
@@ -24,11 +24,11 @@ const Otp = () => {
       (input) => input.current && input.current.value !== ""
     );
     if (index == inputs.length - 1 && allValuesPresent) {
-      console.log('here');
+      console.log("here");
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
-        // verifyOtp(otpValue);
-        setDisabledField(true);
+        verifyOtp({ email: userEmail, otp: otpValue });
+        // setDisabledField(true);
       }, 1000);
     }
   };
@@ -46,30 +46,34 @@ const Otp = () => {
       focusInput(inputs, index - 1);
     }
   };
-  const handleSubmit = (e) =>{
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('submitted')
+    verifyOtp({ userEmail, otpValue });
+    console.log("submitted");
   };
 
-  const maskEmail=(email)=> {
-    const [localPart, domainPart] = email.split('@');
-  
-    const maskedLocal = localPart.slice(0, 1) + '*'.repeat(Math.max(localPart.length - 2, 0));
-  
-    const domainName = domainPart.split('.')[0];
+  const maskEmail = (email) => {
+    const [localPart, domainPart] = email.split("@");
+
+    const maskedLocal =
+      localPart.slice(0, 1) + "*".repeat(Math.max(localPart.length - 2, 0));
+
+    const domainName = domainPart.split(".")[0];
     const topLevelDomain = domainPart.slice(domainName.length);
-  
-    const maskedDomain = domainName.charAt(0) + '*'.repeat(Math.max(domainName.length - 1, 0));
-  
+
+    const maskedDomain =
+      domainName.charAt(0) + "*".repeat(Math.max(domainName.length - 1, 0));
+
     return `${maskedLocal}@${maskedDomain}${topLevelDomain}`;
-  }
+  };
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
       <div className="max-w-md mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
         <header className="mb-8">
           <h1 className="text-2xl font-bold mb-1">Email Verification</h1>
           <p className="text-[15px] text-slate-500">
-            Enter the 4-digit verification code that was sent to your email: <strong>{maskEmail(userEmail) || '****@****.com'}</strong>
+            Enter the 4-digit verification code that was sent to your email:{" "}
+            <strong>{maskEmail(userEmail) || "****@****.com"}</strong>
           </p>
         </header>
         <form id="otp-form">
@@ -93,7 +97,7 @@ const Otp = () => {
             <button
               onClick={handleSubmit}
               type="submit"
-              disabled = {!disabledField}
+              disabled={!disabledField}
               className="w-full inline-flex justify-center whitespace-nowrap disabled:bg-gray-400 rounded-lg bg-primary-600 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-950/10 hover:bg-indigo-600 focus:outline-none focus:ring focus:ring-indigo-300 focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300 transition-colors duration-150"
             >
               Verify Account

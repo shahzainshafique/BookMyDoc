@@ -60,10 +60,21 @@ const useAuthCall = () => {
       dispatch(fetchFail());
     }
   };
+
+  const verifyOtp = async (otpData) => {
+    console.log(otpData);
+    const { data, status } = await axios.post(
+      `${url}/api/otp/verify-otp`,
+      otpData
+    );
+    console.log(data);
+    if (status == 200) alert("OTP Verified");
+  };
   return {
     regDoctor,
     loginDoctor,
     reqOTP,
+    verifyOtp,
   };
 };
 
