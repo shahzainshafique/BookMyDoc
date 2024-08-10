@@ -11,24 +11,20 @@ const generateOtp = (length = 6) => {
 }
 
 const sendOtpEmail = async(email, otp) => {
-    nodemailer.createTestAccount((err, account) => {
-        if (err) {
-            console.error('Failed to create a testing account. ' + err.message);
-            return process.exit(1);
-        }
+
     
         console.log('Credentials obtained, sending message...');
     
-        // Create a SMTP transporter object
-        let transporter = nodemailer.createTransport({
-            host: account.smtp.host,
-            port: account.smtp.port,
-            secure: account.smtp.secure,
+        const transporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false, // Use `true` for port 465, `false` for all other ports
             auth: {
-                user: account.user,
-                pass: account.pass
-            }
-        });
+              user: "x7t0swzq86xchs0@tempmail.us.com",
+              pass: "qnhllwkmlbvxyu3sd6s3yyswr5jq6z",
+            },
+          });
+          
     
         // Message object
         let message = {
@@ -49,16 +45,16 @@ const sendOtpEmail = async(email, otp) => {
             // Preview only available when sending through an Ethereal account
             console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
         });
-    });
+    
 }
 exports.requestOtp = async (req,res) => {
     const {email, userType} = req.body;
     try{
     const otp = generateOtp();
-    console.log(req.body);
+    console.log(otp);
     const otpEntry = new OTP({email, userType, otp });
     await otpEntry.save();
-    await sendOtpEmail(email, otp);
+    // await sendOtpEmail(email, otp);
     res.status(200).send({ message: 'OTP sent successfully' });
 }
 catch(error){
