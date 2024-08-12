@@ -62,13 +62,18 @@ const useAuthCall = () => {
   };
 
   const verifyOtp = async (otpData) => {
-    console.log(otpData);
-    const { data, status } = await axios.post(
-      `${url}/api/otp/verify-otp`,
-      otpData
-    );
-    console.log(data);
-    alert(data.message);
+    try {
+      console.log(otpData);
+      const { data, status } = await axios.post(
+        `${url}/api/otp/verify-otp`,
+        otpData
+      );
+      console.log(data);
+      alert(data.message);
+    } catch (error) {
+      console.log("eer", error);
+      alert(error.response.data.error);
+    }
   };
   return {
     regDoctor,

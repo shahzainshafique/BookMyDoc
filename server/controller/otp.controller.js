@@ -61,11 +61,11 @@ exports.verifyOtp = async (req, res) => {
     const otpFound = await OTP.findOne({ email });
 
     if (!otpFound) {
-      return res.status(400).send({ message: "OTP not found for this email!" });
+      return res.status(400).send({ error: "OTP not found for this email!" });
     }
     const isMatched = otpFound.otp == otp;
     if (!isMatched) {
-      return res.status(401).send({ message: "Incorrect OTP!" });
+      return res.status(401).send({ error: "Incorrect OTP!" });
     }
 
     res.status(200).send({ message: "OTP Verified successfully!" });
