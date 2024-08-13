@@ -28,7 +28,7 @@ const Otp = () => {
       const otpValue = inputs.map((input) => input.current.value).join("");
       setTimeout(() => {
         verifyOtp({ email: userEmail, otp: otpValue });
-        // setDisabledField(true);
+        setDisabledField(true);
       }, 1000);
     }
   };
