@@ -3,6 +3,7 @@ import RegisterDoctor from "../Pages/auth/doctor/RegisterDoctor";
 import Landing from "../Pages/landing/landing";
 import LoginDoc from "../Pages/auth/doctor/LoginDoc";
 import Otp from "../Pages/auth/doctor/Otp";
+import DoctorDashboard from "../Pages/dashboard/doctor/doctorDashboard";
 
 const AppRouter = () => {
   return (
@@ -12,6 +13,7 @@ const AppRouter = () => {
         <Route path="/regdoc" element={<RegisterDoctor />} />
         <Route path="/otp" element={<Otp />} />
         <Route path="/logindoc" element={<LoginDoc />} />
+        <Route path="/docdash" element={<DoctorDashboard />} />
       </Routes>
     </Router>
   );
