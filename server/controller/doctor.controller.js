@@ -1,4 +1,7 @@
 const Doctor = require("../models/Doctors.model");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.createDoctor = async (req, res) => {
   try {
@@ -28,8 +31,8 @@ exports.loginDoctor = async (req, res) => {
         console.log("in here");
         return res.status(401).send({ error: "Wrong Password!" });
       }
-      console.log('pas');
-      return res.status(200).send(doctor);
+      const token = jwt.sign({id:doctor._id}, JWT_SECRET, {expiresIn: "1h"});      
+      return res.status(200).send({doctor,token});
     });
   } catch (error) {
     res.status(500).send(error);
