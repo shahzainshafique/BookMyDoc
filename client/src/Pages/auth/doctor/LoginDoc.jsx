@@ -1,10 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useAuthCall from "../../../Hooks/useAuthCall";
+import { useNavigate } from "react-router-dom";
 export default function LoginDoc() {
   const [formData, setFormData] = useState({ email: "", password: "" });
-
   const { loginDoctor } = useAuthCall();
+  const navigate = useNavigate();
 
+  // Function to get a cookie by name
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+  useEffect(() => {
+    // Check if the auth token is present in the cookies
+    const token = getCookie("authToken");
+    if (token) {
+console.log("token exists:", token);
+      // navigate("/docdash");
+    }
+  }, [navigate]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
