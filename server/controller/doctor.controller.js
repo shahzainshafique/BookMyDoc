@@ -32,7 +32,7 @@ exports.loginDoctor = async (req, res) => {
         return res.status(401).send({ error: "Wrong Password!" });
       }
       const token = jwt.sign({id:doctor._id}, JWT_SECRET, {expiresIn: "1h"});      
-      return res.status(200).send({doctor,token});
+      return res.status(200).send({doctor,token, expiresIn: "3600"});
     });
   } catch (error) {
     res.status(500).send(error);
