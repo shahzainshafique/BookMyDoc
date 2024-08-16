@@ -36,13 +36,14 @@ const useAuthCall = () => {
     dispatch(fetchStart());
     try {
       const { data } = await axios.post(`${url}/api/doctor/login`, userData);
-      log(data);
+      console.log(data);
       if (!data.error) {
         dispatch(loginSuccess(data));
-        navigate("/doctor");
+        // navigate("/doctor");
       }
       return data;
     } catch (error) {
+      console.log(error);
       alert(error.response.data.error);
       dispatch(fetchFail());
     }
