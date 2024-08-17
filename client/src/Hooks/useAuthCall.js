@@ -40,6 +40,7 @@ const useAuthCall = () => {
       if (!data.error) {
         dispatch(loginSuccess(data));
         setCookie('authToken', data.token,data.expiresIn);
+        setCookie('userType', data.userType,data.expiresIn);
         // navigate("/doctor");
       }
       return data;
