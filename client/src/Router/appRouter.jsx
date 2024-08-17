@@ -17,7 +17,7 @@ const AppRouter = () => {
         <Route
           path="/docdash"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute redirectUrl={"/logindoc"}>
               <DoctorDashboard />
             </ProtectedRoute>
           }

@@ -12,10 +12,10 @@ function getCookie(name) {
   return null;
 }
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, redirectUrl }) => {
   const token = getCookie("authToken");
 
-  return token ? children : <Navigate to="/logindoc" />;
+  return token ? children : <Navigate to={redirectUrl} />;
 };
 
 export default ProtectedRoute;
