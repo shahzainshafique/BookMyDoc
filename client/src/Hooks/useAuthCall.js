@@ -39,8 +39,8 @@ const useAuthCall = () => {
       console.log(data);
       if (!data.error) {
         dispatch(loginSuccess(data));
-        setCookie('authToken', data.token,data.expiresIn);
-        setCookie('userType', data.userType,data.expiresIn);
+        setCookie("authToken", data.token, data.expiresIn);
+        setCookie("userType", data.userType, data.expiresIn);
         // navigate("/doctor");
       }
       return data;
@@ -50,12 +50,6 @@ const useAuthCall = () => {
       dispatch(fetchFail());
     }
   };
-  const setCookie = (name, value, expiresInSeconds) =>{
-    const date = new Date();
-    date.setTime(date.getTime() + (expiresInSeconds*1000));
-    const expires = "; expires="+ date.toUTCString();
-    document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
-  }
 
   const reqOTP = async (userData) => {
     console.log(userData);
