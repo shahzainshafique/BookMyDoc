@@ -7,6 +7,7 @@ import {
   logoutSuccess,
   registerSuccess,
 } from "../Features/authSlice";
+import { setCookie } from "../Helpers/cookies";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
