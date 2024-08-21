@@ -1,9 +1,8 @@
-import React from 'react'
+import React from "react";
+import SideBar from "../../../Components/dashboard/SideBar";
 
 const DoctorDashboard = () => {
-  return (
-    <div className='bg-black h-screen w-11'>DoctorDashboard</div>
-  )
-}
+  return <SideBar />;
+};
 
-export default DoctorDashboard
+export default DoctorDashboard;
