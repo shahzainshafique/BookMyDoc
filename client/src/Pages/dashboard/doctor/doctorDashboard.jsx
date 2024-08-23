@@ -4,10 +4,10 @@ import DoctorDashContent from "../../../Components/dashboard/DoctorDashContent";
 
 const DoctorDashboard = () => {
   return (
-    <>
+    <div className="flex h-screen">
       <SideBar />
       <DoctorDashContent />
-    </>
+    </div>
   );
 };
 
