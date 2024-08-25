@@ -12,7 +12,7 @@ export default function LoginDoc() {
     const token = getCookie("authToken");
     if (token) {
       console.log("token exists:", token);
-      // navigate("/docdash");
+      navigate("/docdash");
     }
   }, [navigate]);
   const handleChange = (e) => {
