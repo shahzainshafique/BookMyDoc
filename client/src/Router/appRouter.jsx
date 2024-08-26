@@ -5,6 +5,7 @@ import LoginDoc from "../Pages/auth/doctor/LoginDoc";
 import Otp from "../Pages/auth/doctor/Otp";
 import ProtectedRoute from "./ProtectedRoute";
 import DoctorDashboard from "../Pages/dashboard/doctor/doctorDashboard";
+import RegisterPatient from "../Pages/auth/patient/RegisterPatient";
 
 const AppRouter = () => {
   return (
@@ -14,6 +15,7 @@ const AppRouter = () => {
         <Route path="/regdoc" element={<RegisterDoctor />} />
         <Route path="/otp" element={<Otp />} />
         <Route path="/logindoc" element={<LoginDoc />} />
+        <Route path="/patient/signup" element={<RegisterPatient />} />
         <Route
           path="/docdash"
           element={
