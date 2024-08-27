@@ -66,6 +66,24 @@ const useAuthCall = () => {
       console.log(error);
     }
   };
+  const loginPatient = async (userData) => {
+    dispatch(fetchStart());
+    try {
+      const { data } = await axios.post(`${url}/api/patient/login`, userData);
+      console.log(data);
+      if (!data.error) {
+        dispatch(loginSuccess(data));
+        setCookie("authToken", data.token, data.expiresIn);
+        setCookie("userType", data.userType, data.expiresIn);
+        navigate("/docdash");
+      }
+      return data;
+    } catch (error) {
+      console.log(error);
+      alert(error.response.data.error);
+      dispatch(fetchFail());
+    }
+  };
 
   const reqOTP = async (userData) => {
     console.log(userData);
@@ -98,6 +116,8 @@ const useAuthCall = () => {
   return {
     regDoctor,
     loginDoctor,
+    regPatient,
+    loginPatient,
     reqOTP,
     verifyOtp,
   };
