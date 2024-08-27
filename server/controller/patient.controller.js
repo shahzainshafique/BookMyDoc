@@ -28,6 +28,7 @@ exports.loginPatient = async (req, res) => {
       const token = jwt.sign({ id: patient._id }, JWT_SECRET, {
         expiresIn: "1h",
       });
+      console.log(token);
       return res
         .status(200)
         .send({ patient, token, expiresIn: "3600", userType: "patient" });
