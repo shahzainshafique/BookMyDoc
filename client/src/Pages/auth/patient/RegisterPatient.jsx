@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import useAuthCall from "../../../Hooks/useAuthCall";
 
 const RegisterPatient = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,8 @@ const RegisterPatient = () => {
     email: "",
     password: "",
   });
+
+  const { regPatient } = useAuthCall();
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,10 +26,7 @@ const RegisterPatient = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:9000/api/patient/signup",
-        formData
-      ); // Replace with your API endpoint
+      const response = await regPatient(formData);
       setSuccess("Signup successful!");
       setError("");
     } catch (error) {
