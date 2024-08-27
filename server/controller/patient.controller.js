@@ -22,7 +22,7 @@ exports.loginPatient = async (req, res) => {
         console.log(err);
         return res.status(400).send({ error: err });
       }
-      res.send(user);
+      res.status(201).send(patient);
     });
   } catch (exp) {
     console.log(exp);
