@@ -1,4 +1,7 @@
 const Patient = require("../models/Patients.model");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 //create new Patient
 exports.createPatient = async (req, res) => {
@@ -22,7 +25,12 @@ exports.loginPatient = async (req, res) => {
         console.log(err);
         return res.status(400).send({ error: err });
       }
-      res.status(201).send(patient);
+      const token = jwt.sign({ id: patient._id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      return res
+        .status(200)
+        .send({ patient, token, expiresIn: "3600", userType: "patient" });
     });
   } catch (exp) {
     console.log(exp);
