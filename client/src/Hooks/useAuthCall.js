@@ -75,7 +75,7 @@ const useAuthCall = () => {
         dispatch(loginSuccess(data));
         setCookie("authToken", data.token, data.expiresIn);
         setCookie("userType", data.userType, data.expiresIn);
-        navigate("/docdash");
+        // navigate("/docdash");
       }
       return data;
     } catch (error) {
