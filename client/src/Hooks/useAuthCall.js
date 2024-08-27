@@ -51,6 +51,21 @@ const useAuthCall = () => {
       dispatch(fetchFail());
     }
   };
+  const regPatient = async (userData) => {
+    dispatch(fetchStart());
+    try {
+      const { data } = await axios.post(`${url}/api/patient/signup`, userData);
+      console.log(data);
+      if (!data.error) {
+        dispatch(registerSuccess(data));
+        // navigate("/doctor");
+      }
+    } catch (error) {
+      alert(error.response.data.error);
+      dispatch(fetchFail());
+      console.log(error);
+    }
+  };
 
   const reqOTP = async (userData) => {
     console.log(userData);
