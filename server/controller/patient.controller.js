@@ -1,5 +1,6 @@
 const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -42,12 +43,13 @@ exports.loginPatient = async (req, res) => {
 exports.bookAppointment = async (req, res) => {
   try {
     const { patientId, doctorId, appointmentDate, appointmentTime, appointmentLocation } = req.body;
-
+console.log('starting pipeline');
+const start = new Date();
     // Use aggregation to check for existing appointments and fetch doctor availability
     const result = await Patient.aggregate([
       {
         $match: {
-          _id: mongoose.Types.ObjectId(patientId),
+          _id: new mongoose.Types.ObjectId(patientId),
         },
       },
       {
@@ -55,7 +57,7 @@ exports.bookAppointment = async (req, res) => {
       },
       {
         $match: {
-          "appointments.doctor": mongoose.Types.ObjectId(doctorId),
+          "appointments.doctor": new mongoose.Types.ObjectId(doctorId),
           "appointments.appointmentDate": new Date(appointmentDate),
           "appointments.appointmentTime": appointmentTime,
         },
@@ -80,7 +82,12 @@ exports.bookAppointment = async (req, res) => {
         },
       },
     ]);
+    const endTime = new Date();
 
+    // Calculate the time taken in milliseconds
+    const timeTaken = endTime - start;
+    console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
+console.log('pip', result);
     if (result.length > 0) {
       return res.status(400).send({ error: "Doctor is not available at this time" });
     }
