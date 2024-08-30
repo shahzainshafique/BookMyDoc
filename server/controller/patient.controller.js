@@ -1,6 +1,7 @@
 const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const Doctor = require("../models/Doctors.model");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -47,11 +48,11 @@ exports.bookAppointment = async (req, res) => {
     // Start the timer
     const startTime = new Date();
 
-    // Use aggregation to check for existing appointments and fetch doctor availability
-    const result = await Patient.aggregate([
+    // Check for conflicting appointments in the Doctor's collection
+    const conflictingAppointment = await Doctor.aggregate([
       {
         $match: {
-          _id: new mongoose.Types.ObjectId(patientId),
+          _id: new mongoose.Types.ObjectId(doctorId),
         },
       },
       {
@@ -59,28 +60,8 @@ exports.bookAppointment = async (req, res) => {
       },
       {
         $match: {
-          "appointments.doctor": new mongoose.Types.ObjectId(doctorId),
           "appointments.appointmentDate": new Date(appointmentDate),
           "appointments.appointmentTime": appointmentTime,
-        },
-      },
-      {
-        $lookup: {
-          from: "doctors",
-          localField: "appointments.doctor",
-          foreignField: "_id",
-          as: "doctorDetails",
-        },
-      },
-      {
-        $unwind: "$doctorDetails",
-      },
-      {
-        $project: {
-          doctorName: { $concat: ["$doctorDetails.firstname", " ", "$doctorDetails.lastname"] },
-          appointmentTime: "$appointments.appointmentTime",
-          appointmentDate: "$appointments.appointmentDate",
-          patientId: "$_id",
         },
       },
     ]);
@@ -90,8 +71,10 @@ exports.bookAppointment = async (req, res) => {
     const timeTaken = endTime - startTime;
     console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
 
-    if (result.length > 0) {
-      return res.status(400).send({ error: "Doctor is not available at this time" });
+    if (conflictingAppointment.length > 0) {
+      return res.status(400).send({
+        error: "Doctor is already booked at this time",
+      });
     }
 
     // Begin transaction
@@ -155,4 +138,5 @@ exports.bookAppointment = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
 
