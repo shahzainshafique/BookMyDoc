@@ -43,8 +43,10 @@ exports.loginPatient = async (req, res) => {
 exports.bookAppointment = async (req, res) => {
   try {
     const { patientId, doctorId, appointmentDate, appointmentTime, appointmentLocation } = req.body;
-console.log('starting pipeline');
-const start = new Date();
+
+    // Start the timer
+    const startTime = new Date();
+
     // Use aggregation to check for existing appointments and fetch doctor availability
     const result = await Patient.aggregate([
       {
@@ -82,43 +84,75 @@ const start = new Date();
         },
       },
     ]);
-    const endTime = new Date();
 
-    // Calculate the time taken in milliseconds
-    const timeTaken = endTime - start;
+    // End the timer
+    const endTime = new Date();
+    const timeTaken = endTime - startTime;
     console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
-console.log('pip', result);
+
     if (result.length > 0) {
       return res.status(400).send({ error: "Doctor is not available at this time" });
     }
 
-    // If no existing appointment found, proceed with booking
-    await Patient.findByIdAndUpdate(
-      patientId,
-      {
-        $push: {
-          appointments: {
-            doctor: doctorId,
-            appointmentDate,
-            appointmentTime,
-            appointmentLocation,
+    // Begin transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Update patient record
+      await Patient.findByIdAndUpdate(
+        patientId,
+        {
+          $push: {
+            appointments: {
+              doctor: doctorId,
+              appointmentDate,
+              appointmentTime,
+              appointmentLocation,
+            },
           },
         },
-      },
-      { new: true }
-    );
+        { new: true, session }
+      );
 
-    return res.status(201).send({
-      message: "Appointment booked successfully",
-      appointment: {
-        doctor: doctorId,
-        appointmentDate,
-        appointmentTime,
-        appointmentLocation,
-      },
-    });
+      // Update doctor record to add the appointment
+      await Doctor.findByIdAndUpdate(
+        doctorId,
+        {
+          $push: {
+            appointments: {
+              patient: patientId,
+              appointmentDate,
+              appointmentTime,
+              appointmentLocation,
+            },
+          },
+        },
+        { new: true, session }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return res.status(201).send({
+        message: `Appointment booked successfully in ${timeTaken}ms`,
+        appointment: {
+          doctor: doctorId,
+          appointmentDate,
+          appointmentTime,
+          appointmentLocation,
+        },
+      });
+    } catch (error) {
+      // Abort the transaction in case of an error
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
