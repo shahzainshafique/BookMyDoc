@@ -139,4 +139,99 @@ exports.bookAppointment = async (req, res) => {
   }
 };
 
+exports.cancelAppointment = async (req, res) => {
+  try {
+    const { patientId, doctorId, appointmentDate, appointmentTime } = req.body;
+
+    // Get current time
+    const cancellationTime = new Date();
+
+    // Find the appointment in the patient's record to calculate cancellation fee
+    const patient = await Patient.findById(patientId).select('appointments');
+
+    if (!patient) {
+      return res.status(404).send({ error: "Patient not found" });
+    }
+
+    // Find the appointment in the patient's appointments
+    const appointment = patient.appointments.find(
+      (app) =>
+        app.doctor.toString() === doctorId &&
+        app.appointmentDate.toISOString() === new Date(appointmentDate).toISOString() &&
+        app.appointmentTime === appointmentTime
+    );
+
+    if (!appointment) {
+      return res.status(404).send({ error: "Appointment not found" });
+    }
+
+    // Calculate the time difference in hours between cancellation and appointment
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+    const hoursUntilAppointment = (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
+
+    // Determine the cancellation fee based on time until the appointment
+    let cancellationFee = 0;
+    if (hoursUntilAppointment < 1) {
+      cancellationFee = 50; // Less than 1 hour before the appointment
+    } else if (hoursUntilAppointment < 24) {
+      cancellationFee = 25; // Less than 24 hours before the appointment
+    } else {
+      cancellationFee = 10; // More than 24 hours before the appointment
+    }
+
+    // Begin transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Remove the appointment from the patient's record
+      await Patient.findByIdAndUpdate(
+        patientId,
+        {
+          $pull: {
+            appointments: {
+              doctor: doctorId,
+              appointmentDate: new Date(appointmentDate),
+              appointmentTime,
+            },
+          },
+        },
+        { session }
+      );
+
+      // Remove the appointment from the doctor's record
+      await Doctor.findByIdAndUpdate(
+        doctorId,
+        {
+          $pull: {
+            appointments: {
+              patient: patientId,
+              appointmentDate: new Date(appointmentDate),
+              appointmentTime,
+            },
+          },
+        },
+        { session }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return res.status(200).send({
+        message: "Appointment cancelled successfully",
+        cancellationFee,
+      });
+    } catch (error) {
+      // Abort the transaction in case of an error
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 
