@@ -65,6 +65,22 @@ const doctorSchema = mongoose.Schema({
       },
     },
   ],
+  waitlist: [
+    {
+      patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Patient",
+      },
+      requestedDate: {
+        type: Date,
+        required: true,
+      },
+      requestedTime: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
 doctorSchema.pre("save", function (next) {
