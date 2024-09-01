@@ -43,7 +43,13 @@ exports.loginPatient = async (req, res) => {
 
 exports.bookAppointment = async (req, res) => {
   try {
-    const { patientId, doctorId, appointmentDate, appointmentTime, appointmentLocation } = req.body;
+    const {
+      patientId,
+      doctorId,
+      appointmentDate,
+      appointmentTime,
+      appointmentLocation,
+    } = req.body;
 
     // Start the timer
     const startTime = new Date();
@@ -181,8 +187,11 @@ exports.cancelAppointment = async (req, res) => {
       session.endSession();
 
       // Calculate cancellation fee
-      const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
-      const hoursUntilAppointment = (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
+      const appointmentDateTime = new Date(
+        `${appointmentDate}T${appointmentTime}`
+      );
+      const hoursUntilAppointment =
+        (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
 
       let cancellationFee = 0;
       if (hoursUntilAppointment < 1) {
@@ -207,5 +216,3 @@ exports.cancelAppointment = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
-
-
