@@ -1,9 +1,14 @@
-const express = require('express');
-const {createDoctor, loginDoctor} = require('../controller/doctor.controller');
+const express = require("express");
+const {
+  createDoctor,
+  loginDoctor,
+  getTotalAppointments,
+} = require("../controller/doctor.controller");
 
 const router = express.Router();
 
-router.use('/signup',createDoctor);
-router.use('/login',loginDoctor);
+router.use("/signup", createDoctor);
+router.use("/login", loginDoctor);
+router.use("/get-appointments-count", getTotalAppointments);
 
 module.exports = router;
