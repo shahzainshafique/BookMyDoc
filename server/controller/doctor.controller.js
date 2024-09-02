@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Doctor = require("../models/Doctors.model");
 const jwt = require("jsonwebtoken");
 
@@ -75,5 +76,38 @@ exports.addToWaitlist = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+exports.getTotalAppointments = async (req, res) => {
+  try {
+    const { doctorId } = req.body;
+    const totalAppointments = await Doctor.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(doctorId),
+        },
+      },
+      {
+        $unwind: "$appointments",
+      },
+      {
+        $group: {
+          _id: "$appointments.doctor",
+          totalAppointments: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          totalAppointments: -1,
+        },
+      },
+    ]);
+
+    if (!totalAppointments) {
+      return res.status(404).send({ message: "No Appointments Found" });
+    }
+    return res.status(200).send({ totalAppointments });
+  } catch (error) {
+    res.status(500).send({ error });
   }
 };
