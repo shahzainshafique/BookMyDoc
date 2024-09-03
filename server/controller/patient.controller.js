@@ -216,3 +216,46 @@ exports.cancelAppointment = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+exports.getPatientsAppointment = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const totalAppointments = await Patient.aggregate([
+      {
+        "$match": {
+          "email": email // Replace with the patient's email or other identifier
+        }
+      },
+      {
+        "$unwind": "$appointments"
+      },
+      {
+        "$match": {
+          "appointments.appointmentDate": { "$gte": new Date() } // Only future appointments
+        }
+      },
+      {
+        "$project": {
+          "firstname": 1,
+          "lastname": 1,
+          "appointmentDate": "$appointments.appointmentDate",
+          "appointmentTime": "$appointments.appointmentTime",
+          "appointmentLocation": "$appointments.appointmentLocation"
+        }
+      },
+      {
+        "$sort": {
+          "appointments.appointmentDate": 1 // Sort by appointment date (ascending)
+        }
+      }
+    ]);
+
+    if (!totalAppointments) {
+      return res.status(404).send({ message: "No Appointments Found" });
+    }
+    
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+};
