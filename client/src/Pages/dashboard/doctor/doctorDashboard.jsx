@@ -1,15 +1,16 @@
 import React from "react";
 import SideBar from "../../../Components/dashboard/SideBar";
 import DoctorDashContent from "../../../Components/dashboard/DoctorDashContent";
-import Header from "../../../Components/header/Header";
+import DocHeader from "../../../Components/dashboard/doctor/DocHeader";
 
 const DoctorDashboard = () => {
-  return (<>
-      <Header/>
-    <div className="h-screen flex">
-      <SideBar />
-      <DoctorDashContent />
-    </div>
+  return (
+    <>
+      <DocHeader />
+      <div className="h-screen flex">
+        {/* <SideBar />
+      <DoctorDashContent /> */}
+      </div>
     </>
   );
 };
