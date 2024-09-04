@@ -37,7 +37,7 @@ exports.loginDoctor = async (req, res) => {
       });
       return res
         .status(200)
-        .send({ doctor, token, expiresIn: "3600", userType: "doctor" });
+        .send({ doctor, token, expiresIn: "14400", userType: "doctor" });
     });
   } catch (error) {
     res.status(500).send(error);
