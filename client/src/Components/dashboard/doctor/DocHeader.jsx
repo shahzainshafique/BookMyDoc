@@ -4,25 +4,27 @@ const DocHeader = () => {
   return (
     <>
       <div className="flex flex-row justify-between p-5 ml-3 items-center">
-        <h2 className="text-black text-3xl font-semibold">BookMyDoc</h2>
-        <div className="flex flex-row">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="size-6 mr-3"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
-              clipRule="evenodd"
-            />
-          </svg>
+        <div className="flex flex-row space-x-20">
+          <h2 className="text-black text-3xl font-semibold">BookMyDoc</h2>
+          <div className="flex flex-row items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="size-6 mr-3"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
+                clipRule="evenodd"
+              />
+            </svg>
 
-          <input
-            className="border-none"
-            placeholder="Search something here..."
-          />
+            <input
+              className="border-none"
+              placeholder="Search something here..."
+            />
+          </div>
         </div>
         <div className="flex flex-row items-center space-x-5">
           <svg
