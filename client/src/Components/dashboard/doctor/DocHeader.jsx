@@ -4,7 +4,7 @@ import React from "react";
 const DocHeader = () => {
   return (
     <>
-      <div className="flex flex-row justify-between p-4 items-center">
+      <div className="flex flex-row justify-between p-5 ml-3 items-center">
         <h2 className="text-black text-3xl font-semibold">BookMyDoc</h2>
         <div className="flex flex-row">
           <svg

@@ -16,7 +16,7 @@ const DocSidebar = () => {
         <div
           key={index} // Always provide a unique key when mapping
           tabIndex="0"
-          className="flex flex-row items-center p-5 focus:bg-slate-100 rounded-3xl font-semibold font-sans space-x-3"
+          className="flex flex-row items-center p-5 focus:bg-slate-100 hover:bg-slate-100  rounded-3xl font-semibold font-sans space-x-3"
         >
           <span className="text-2xl">{nav.icon}</span>
           <span>{nav.name}</span>
