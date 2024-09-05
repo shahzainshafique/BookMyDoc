@@ -1,18 +1,25 @@
 import React from "react";
+import { RxDashboard, RxCalendar, RxPieChart, RxPerson,RxChatBubble } from "react-icons/rx";
 
 const DocSidebar = () => {
   const navigation = [
-    { name: "Dashboard" },
-    { name: "Calendar" },
-    { name: "Statistics" },
-    { name: "Profile" },
-    { name: "Chat" },
+    { name: "Dashboard", icon: <RxDashboard /> },
+    { name: "Calendar", icon: <RxCalendar /> },
+    { name: "Statistics", icon: <RxPieChart /> },
+    { name: "Profile", icon: <RxPerson /> },
+    { name: "Chat", icon: <RxChatBubble /> },
   ];
+
   return (
-    <div className="flex flex-col w-64 h-screen space-y-7 bg-white">
-      {navigation.map((nav) => (
-        <div className="flex flex-row p-5 bg-gray-600 rounded-3xl">
-          {nav.name}
+    <div className="flex flex-col w-64 h-screen space-y-4 m-3 bg-white">
+      {navigation.map((nav, index) => (
+        <div
+          key={index} // Always provide a unique key when mapping
+          tabIndex="0"
+          className="flex flex-row items-center p-5 focus:bg-slate-100 rounded-3xl font-semibold font-sans space-x-3"
+        >
+          <span className="text-2xl">{nav.icon}</span>
+          <span>{nav.name}</span>
         </div>
       ))}
     </div>
