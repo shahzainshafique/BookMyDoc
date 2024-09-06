@@ -272,28 +272,60 @@ exports.reScheduleAppointment = async (req, res) => {
 
     const session = await mongoose.startSession();
     session.startTransaction();
-
-    const patientUpdate = await Patient.findOneAndUpdate(
-      {
-        _id: patientId,
-        "appointments.doctor": doctorId,
-        "appointments.appointmentDate": new Date(oldAppointmentDate),
-        "appointments.appointmentTime": oldAppointmentTime,
-      },
-      {
-        $set: {
-          "appointments.$.appointmentDate": new Date(newAppointmentDate),
-          "appointments.$.appointmentTime": newAppointmentTime,
-          "appointments.$.appointmentStatus": "rescheduled",
+    try {
+      const patientUpdate = await Patient.findOneAndUpdate(
+        {
+          _id: patientId,
+          "appointments.doctor": doctorId,
+          "appointments.appointmentDate": new Date(oldAppointmentDate),
+          "appointments.appointmentTime": oldAppointmentTime,
         },
-      },
-      { session, new: true }
-    );
+        {
+          $set: {
+            "appointments.$.appointmentDate": new Date(newAppointmentDate),
+            "appointments.$.appointmentTime": newAppointmentTime,
+            "appointments.$.appointmentStatus": "rescheduled",
+          },
+        },
+        { session, new: true }
+      );
 
-    if (!patientUpdate) {
+      if (!patientUpdate) {
+        return res
+          .status(404)
+          .send({ message: "Appointment not found for the patient" });
+      }
+
+      const doctorUpdate = await Doctor.findOneAndUpdate(
+        {
+          _id: patientId,
+          "appointments.appointmentDate": new Date(oldAppointmentDate),
+          "appointments.appointmentTime": oldAppointmentTime,
+        },
+        {
+          $set: {
+            "appointments.$.appointmentDate": new Date(newAppointmentDate),
+            "appointments.$.appointmentTime": newAppointmentTime,
+            "appointments.$.appointmentStatus": "rescheduled",
+          },
+        },
+        { session, new: true }
+      );
+
+      if (!doctorUpdate) {
+        return res
+          .status(404)
+          .send({ message: "Appointment not found for the doctor!" });
+      }
+      await session.commitTransaction();
+      session.endSession();
       return res
-        .status(404)
-        .send({ message: "Appointment not found for the patient" });
+        .status(200)
+        .send({ message: "Appointment rescheduled successfully" });
+    } catch (error) {
+      return res.status(500).send({ error });
     }
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).send({ error });
+  }
 };
