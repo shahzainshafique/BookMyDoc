@@ -275,8 +275,8 @@ exports.reScheduleAppointment = async (req, res) => {
     try {
       const patientUpdate = await Patient.findOneAndUpdate(
         {
-          _id: patientId,
-          "appointments.doctor": doctorId,
+          _id: new mongoose.Types.ObjectId(patientId),
+          "appointments.doctor": new mongoose.Types.ObjectId(doctorId),
           "appointments.appointmentDate": new Date(oldAppointmentDate),
           "appointments.appointmentTime": oldAppointmentTime,
         },
@@ -289,7 +289,7 @@ exports.reScheduleAppointment = async (req, res) => {
         },
         { session, new: true }
       );
-
+      console.log(patientUpdate);
       if (!patientUpdate) {
         return res
           .status(404)
@@ -298,7 +298,7 @@ exports.reScheduleAppointment = async (req, res) => {
 
       const doctorUpdate = await Doctor.findOneAndUpdate(
         {
-          _id: patientId,
+          _id: new mongoose.Types.ObjectId(doctorId),
           "appointments.appointmentDate": new Date(oldAppointmentDate),
           "appointments.appointmentTime": oldAppointmentTime,
         },
