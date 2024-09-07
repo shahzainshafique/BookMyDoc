@@ -111,3 +111,48 @@ exports.getTotalAppointments = async (req, res) => {
     res.status(500).send({ error });
   }
 };
+
+exports.fetchDoctorAppointments = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { status, date } = req.query;
+    if (!doctorId) {
+      return res.status(400).send({ message: "Doctor ID is required!" });
+    }
+    const query = {
+      _id: doctorId,
+      "appointments.appointmentStatus": status,
+    };
+
+    if (date) {
+      const appointmentDate = new Date(date);
+      query["appointments.appointmentDate"] = {
+        $eq: appointmentDate,
+      };
+    }
+    const doctor = await Doctor.findOne(query).populate("appointments.patient");
+    if (!doctor) {
+      return res.status(404).send({ error: "Doctor not found." });
+    }
+
+    // Filter the appointments based on status and optionally date
+    const filteredAppointments = doctor.appointments.filter((appointment) => {
+      if (appointment.appointmentStatus !== status) {
+        return false;
+      }
+      if (
+        date &&
+        appointment.appointmentDate.toDateString() !==
+          new Date(date).toDateString()
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    return res.status(200).send({ appointments: filteredAppointments });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
