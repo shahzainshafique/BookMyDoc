@@ -15,7 +15,7 @@ function classNames(...classes) {
 
 export default function Header() {
   return (
-    <Disclosure as="nav" className="bg-blue-500">
+    <Disclosure as="nav" className="bg-blue-600">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -35,28 +35,23 @@ export default function Header() {
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="hidden sm:ml-6 sm:block">
-                <div className="home-left text-white">
-            <img
-              alt="image"
-              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
-              className="home-logo"
-              style={{width:'35px'}}
-            />
-            <h3 style={{fontWeight:"bold", fontSize:"20px", marginLeft:"-20px"}}>BookMyDoc</h3>
-            <nav className="home-links">
-              <a href="#features" className="home-link">
-                Features
-              </a>
-              <a href="#how-it-works" className="home-link01">
-                How it works
-              </a>
-              <span className="home-link02">Prices</span>
-              <a href="#schedule" className="home-link03">
-                Contact
-              </a>
-            </nav>
-          </div>
-          
+                  <div className="flex space-x-4">
+                    {navigation.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={classNames(
+                          item.current
+                            ? "bg-blue-900 text-white"
+                            : "text-gray-300 hover:bg-blue-900 hover:text-white",
+                          "rounded-md px-3 py-2 text-sm font-medium"
+                        )}
+                        aria-current={item.current ? "page" : undefined}
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
@@ -137,7 +132,28 @@ export default function Header() {
               </div>
             </div>
           </div>
-        
+          <div className="home-left">
+            <img
+              alt="image"
+              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
+              className="home-logo"
+              style={{width:'35px'}}
+            />
+            <h3 style={{fontWeight:"bold", fontSize:"20px", marginLeft:"-20px"}}>BookMyDoc</h3>
+            <nav className="home-links">
+              <a href="#features" className="home-link">
+                Features
+              </a>
+              <a href="#how-it-works" className="home-link01">
+                How it works
+              </a>
+              <span className="home-link02">Prices</span>
+              <a href="#schedule" className="home-link03">
+                Contact
+              </a>
+            </nav>
+          </div>
+          
         </>
       )}
     </Disclosure>

@@ -156,3 +156,76 @@ exports.fetchDoctorAppointments = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+exports.rescheduleAppointment = async (req, res) => {
+  try {
+    const {
+      patientId,
+      doctorId,
+      oldAppointmentDate,
+      oldAppointmentTime,
+      newAppointmentDate,
+      newAppointmentTime,
+    } = req.body;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const patientUpdate = await Patient.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(patientId),
+          "appointments.doctor": new mongoose.Types.ObjectId(doctorId),
+          "appointments.appointmentDate": new Date(oldAppointmentDate),
+          "appointments.appointmentTime": oldAppointmentTime,
+        },
+        {
+          $set: {
+            "appointments.$.appointmentDate": new Date(newAppointmentDate),
+            "appointments.$.appointmentTime": newAppointmentTime,
+            "appointments.$.appointmentStatus": "rescheduled",
+          },
+        },
+        { session, new: true }
+      );
+      if (!patientUpdate) {
+        return res
+          .status(404)
+          .send({ message: "Appointment not found for the patient" });
+      }
+
+      const doctorUpdate = await Doctor.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(doctorId),
+          "appointments.appointmentDate": new Date(oldAppointmentDate),
+          "appointments.appointmentTime": oldAppointmentTime,
+        },
+        {
+          $set: {
+            "appointments.$.appointmentDate": new Date(newAppointmentDate),
+            "appointments.$.appointmentTime": newAppointmentTime,
+            "appointments.$.appointmentStatus": "rescheduled",
+          },
+        },
+        { session, new: true }
+      );
+
+      if (!doctorUpdate) {
+        return res
+          .status(404)
+          .send({ message: "Appointment not found for the doctor" });
+      }
+
+      await session.commitTransaction();
+
+      return res
+
+        .status(200)
+        .send({ message: "Appointment rescheduled successfully" });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(500).send({ error });
+    }
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+};
