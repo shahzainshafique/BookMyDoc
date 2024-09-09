@@ -1,6 +1,6 @@
 import React from "react";
 
-const Table = ({ columns, data }) => {
+const Table = ({ columns, data, button }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-200">
@@ -25,6 +25,7 @@ const Table = ({ columns, data }) => {
                   className="py-2 px-4 border-b border-gray-200 text-gray-800"
                 >
                   {row[column.accessor]}
+                  {button ? <button>{button}</button> : null}
                 </td>
               ))}
             </tr>
