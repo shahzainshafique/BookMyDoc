@@ -16,11 +16,12 @@ const authSlice = createSlice({
       state.error = false;
     },
     loginSuccess: (state, action) => {
+      console.log("act", action);
       state.loading = false;
-      state.currentUser = action?.email;
-      state.userId = action?._id;
-      state.token = action?.key || "";
-      state.userType = action?.userType || "";
+      state.currentUser = action?.payload?.doctor?.email;
+      state.userId = action?.payload?.doctor?._id;
+      state.token = action?.payload?.token || "";
+      state.userType = action?.payload?.userType || "";
     },
     logoutSuccess: (state) => {
       state.loading = false;
@@ -37,7 +38,6 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = true;
     },
-    
   },
 });
 export const {
