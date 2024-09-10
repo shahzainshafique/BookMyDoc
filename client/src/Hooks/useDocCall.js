@@ -7,12 +7,12 @@ const useDocCall = () => {
 
   const getTodayAppointments = async (doctorId) => {
     try {
-      console.log("dasd", doctorId);
-      console.log("to", token);
       const { data } = await axios.get(
-        `${url}/api/doctor/appointments/${doctorId}`,
+        `${url}/api/doctor/appointments/${doctorId}?status=pending`,
         {
-          Authorization: `Bearer ${token}`,
+          headers: {
+            Authorization: token,
+          },
         }
       );
       console.log(data);

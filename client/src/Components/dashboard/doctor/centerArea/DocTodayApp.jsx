@@ -5,10 +5,7 @@ import { useSelector } from "react-redux";
 
 const DocTodayApp = () => {
   const { getTodayAppointments } = useDocCall();
-  const doctorId = useSelector((state) => {
-    console.log("ddas", state);
-    return state.userId;
-  });
+  const doctorId = useSelector((state) => state.auth.userId);
   console.log("dd", doctorId);
   const columns = [
     { Header: "Name", accessor: "name" },
