@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Table from "../../../common/Table";
 import useDocCall from "../../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
@@ -47,7 +47,7 @@ const DocTodayApp = () => {
 
   return (
     <div className="flex flex-col space-y-4">
-      <h1 className="font-semibold text-2xl">Today's Appointments</h1>
+      <h1 className="font-semibold text-2xl">Todays Appointments</h1>
       <Table columns={columns} data={appointments} />
     </div>
   );
