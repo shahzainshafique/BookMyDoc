@@ -115,13 +115,12 @@ exports.getTotalAppointments = async (req, res) => {
 exports.fetchDoctorAppointments = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const { status, date } = req.query;
+    const { date } = req.query;
     if (!doctorId) {
       return res.status(400).send({ message: "Doctor ID is required!" });
     }
     const query = {
       _id: doctorId,
-      "appointments.appointmentStatus": status,
     };
 
     if (date) {
@@ -137,9 +136,6 @@ exports.fetchDoctorAppointments = async (req, res) => {
 
     // Filter the appointments based on status and optionally date
     const filteredAppointments = doctor.appointments.filter((appointment) => {
-      if (appointment.appointmentStatus !== status) {
-        return false;
-      }
       if (
         date &&
         appointment.appointmentDate.toDateString() !==

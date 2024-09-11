@@ -4,9 +4,40 @@ import useDocCall from "../../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
 
 const DocTodayApp = () => {
-  function capitalizeFirstLetter(str) {
+  const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+  const getStatusLabel = (status) => {
+    const capitalizedStatus = capitalizeFirstLetter(status);
+
+    switch (status) {
+      case "pending":
+        return (
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+            {capitalizedStatus}
+          </span>
+        );
+      case "cancelled":
+        return (
+          <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-700 dark:text-red-300">
+            {capitalizedStatus}
+          </span>
+        );
+      case "completed":
+        return (
+          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
+            {capitalizedStatus}
+          </span>
+        );
+      default:
+        return (
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+            {capitalizedStatus}
+          </span>
+        );
+    }
+  };
+
   const { getTodayAppointments } = useDocCall();
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
@@ -27,13 +58,7 @@ const DocTodayApp = () => {
         name: `${appointment.patient.firstname} ${appointment.patient.lastname}`,
         time: appointment.appointmentTime || "N/A",
         location: appointment.appointmentLocation || "N/A",
-        status: appointment.appointmentStatus === "pending" ? (
-          <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
-            {capitalizeFirstLetter(appointment.appointmentStatus)}
-          </span>
-        ) : (
-          ''
-        ),
+        status: getStatusLabel(appointment.appointmentStatus),
         button: () => (
           <div className="space-x-2">
             <button className="bg-red-500 text-white px-2 py-1 rounded">

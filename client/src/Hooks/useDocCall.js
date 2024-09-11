@@ -8,7 +8,7 @@ const useDocCall = () => {
   const getTodayAppointments = async (doctorId) => {
     try {
       const { data } = await axios.get(
-        `${url}/api/doctor/appointments/${doctorId}?status=pending`,
+        `${url}/api/doctor/appointments/${doctorId}`,
         {
           headers: {
             Authorization: token,
