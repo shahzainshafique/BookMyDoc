@@ -4,13 +4,17 @@ import useDocCall from "../../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
 
 const DocTodayApp = () => {
+  function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
   const { getTodayAppointments } = useDocCall();
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
   const columns = [
     { Header: "Name", accessor: "name" },
-    { Header: "Age", accessor: "age" },
-    { Header: "Email", accessor: "email" },
+    { Header: "Time", accessor: "time" },
+    { Header: "Location", accessor: "location" },
+    { Header: "Status", accessor: "status" },
     { Header: "Action", accessor: "button" },
   ];
   // Wrap getTodayAppointments with useCallback to memoize it
@@ -21,8 +25,15 @@ const DocTodayApp = () => {
     if (Array.isArray(docApps)) {
       const formattedData = docApps.map((appointment) => ({
         name: `${appointment.patient.firstname} ${appointment.patient.lastname}`,
-        age: appointment.patient.age || "N/A",
-        email: appointment.patient.email,
+        time: appointment.appointmentTime || "N/A",
+        location: appointment.appointmentLocation || "N/A",
+        status: appointment.appointmentStatus === "pending" ? (
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+            {capitalizeFirstLetter(appointment.appointmentStatus)}
+          </span>
+        ) : (
+          ''
+        ),
         button: () => (
           <div className="space-x-2">
             <button className="bg-red-500 text-white px-2 py-1 rounded">
@@ -43,7 +54,7 @@ const DocTodayApp = () => {
 
   useEffect(() => {
     fetchAppointments();
-  }, [fetchAppointments]);
+  }, []);
 
   return (
     <div className="flex flex-col space-y-4">
