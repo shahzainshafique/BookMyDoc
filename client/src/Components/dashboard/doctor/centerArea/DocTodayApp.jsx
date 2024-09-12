@@ -42,7 +42,7 @@ const DocTodayApp = () => {
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
   const columns = [
-    { Header: "Name", accessor: "name" },
+    { Header: "Patient's Name", accessor: "name" },
     { Header: "Time", accessor: "time" },
     { Header: "Location", accessor: "location" },
     { Header: "Status", accessor: "status" },
@@ -61,7 +61,7 @@ const DocTodayApp = () => {
         status: getStatusLabel(appointment.appointmentStatus),
         button: () => (
           <div className="space-x-2">
-            <button className="bg-red-500 text-white px-2 py-1 rounded">
+            <button className="bg-gray-400 text-white px-2 py-1 rounded">
               Cancel
             </button>
             <button className="bg-green-500 text-white px-2 py-1 rounded">
