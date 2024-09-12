@@ -152,6 +152,77 @@ exports.fetchDoctorAppointments = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+exports.cancelAppointment = async (req, res) => {
+  try {
+    const { patientId, doctorId, appointmentDate, appointmentTime } = req.body;
+
+    const cancellationTime = new Date();
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Find and update the appointment status in the patient's record
+      await Patient.findOneAndUpdate(
+        {
+          _id: patientId,
+          "appointments.doctor": doctorId,
+          "appointments.appointmentDate": new Date(appointmentDate),
+          "appointments.appointmentTime": appointmentTime,
+        },
+        {
+          $set: { "appointments.$.appointmentStatus": "cancelled" },
+        },
+        { session }
+      );
+
+      // Find and update the appointment status in the doctor's record
+      await Doctor.findOneAndUpdate(
+        {
+          _id: doctorId,
+          "appointments.patient": patientId,
+          "appointments.appointmentDate": new Date(appointmentDate),
+          "appointments.appointmentTime": appointmentTime,
+        },
+        {
+          $set: { "appointments.$.appointmentStatus": "cancelled" },
+        },
+        { session }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      // Calculate cancellation fee
+      const appointmentDateTime = new Date(
+        `${appointmentDate}T${appointmentTime}`
+      );
+      const hoursUntilAppointment =
+        (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
+
+      let cancellationFee = 0;
+      if (hoursUntilAppointment < 1) {
+        cancellationFee = 50;
+      } else if (hoursUntilAppointment < 24) {
+        cancellationFee = 25;
+      } else {
+        cancellationFee = 10;
+      }
+
+      return res.status(200).send({
+        message: "Appointment cancelled successfully",
+        cancellationFee,
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
 exports.rescheduleAppointment = async (req, res) => {
   try {
     const {
