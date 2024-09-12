@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 const DocTodayApp = () => {
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  };
   const getStatusLabel = (status) => {
     const capitalizedStatus = capitalizeFirstLetter(status);
 
@@ -61,10 +61,16 @@ const DocTodayApp = () => {
         status: getStatusLabel(appointment.appointmentStatus),
         button: () => (
           <div className="space-x-2">
-            <button className="bg-gray-400 text-white px-2 py-1 rounded">
+            <button
+              className="bg-gray-400 text-white px-2 py-1 rounded"
+              onClick={handleCancellation}
+            >
               Cancel
             </button>
-            <button className="bg-green-500 text-white px-2 py-1 rounded">
+            <button
+              className="bg-green-500 text-white px-2 py-1 rounded"
+              onClick={handleReschedule}
+            >
               Reschedule
             </button>
           </div>
@@ -77,6 +83,13 @@ const DocTodayApp = () => {
     }
   }, [doctorId, getTodayAppointments]);
 
+  const handleCancellation = () => {
+    console.log("cancelled");
+  };
+
+  const handleReschedule = () => {
+    console.log("Rescheduled");
+  };
   useEffect(() => {
     fetchAppointments();
   }, []);
