@@ -38,7 +38,7 @@ const DocTodayApp = () => {
     }
   };
 
-  const { getTodayAppointments } = useDocCall();
+  const { getTodayAppointments, cancelAppointment } = useDocCall();
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
   const columns = [
@@ -63,13 +63,13 @@ const DocTodayApp = () => {
           <div className="space-x-2">
             <button
               className="bg-gray-400 text-white px-2 py-1 rounded"
-              onClick={handleCancellation}
+              onClick={() => handleCancellation(appointment)}
             >
               Cancel
             </button>
             <button
               className="bg-green-500 text-white px-2 py-1 rounded"
-              onClick={handleReschedule}
+              onClick={() => handleReschedule}
             >
               Reschedule
             </button>
@@ -83,8 +83,17 @@ const DocTodayApp = () => {
     }
   }, [doctorId, getTodayAppointments]);
 
-  const handleCancellation = () => {
-    console.log("cancelled");
+  const handleCancellation = async (appointment) => {
+    console.log(appointment);
+    const postData = {
+      patientId: appointment.patient._id,
+      doctorId: doctorId,
+      appointmentDate: appointment.appointmentDate,
+      appointmentTime: appointment.appointmentTime,
+    };
+    console.log(postData);
+    const cancelRes = await cancelAppointment(postData);
+    console.log(cancelRes);
   };
 
   const handleReschedule = () => {

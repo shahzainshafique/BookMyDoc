@@ -1,5 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const Doctor = require("../models/Doctors.model");
+const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -153,74 +154,98 @@ exports.fetchDoctorAppointments = async (req, res) => {
   }
 };
 exports.cancelAppointment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { patientId, doctorId, appointmentDate, appointmentTime } = req.body;
-
     const cancellationTime = new Date();
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    try {
-      // Find and update the appointment status in the patient's record
-      await Patient.findOneAndUpdate(
-        {
-          _id: patientId,
-          "appointments.doctor": doctorId,
-          "appointments.appointmentDate": new Date(appointmentDate),
-          "appointments.appointmentTime": appointmentTime,
-        },
-        {
-          $set: { "appointments.$.appointmentStatus": "cancelled" },
-        },
-        { session }
-      );
-
-      // Find and update the appointment status in the doctor's record
-      await Doctor.findOneAndUpdate(
-        {
-          _id: doctorId,
-          "appointments.patient": patientId,
-          "appointments.appointmentDate": new Date(appointmentDate),
-          "appointments.appointmentTime": appointmentTime,
-        },
-        {
-          $set: { "appointments.$.appointmentStatus": "cancelled" },
-        },
-        { session }
-      );
-
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      // Calculate cancellation fee
-      const appointmentDateTime = new Date(
-        `${appointmentDate}T${appointmentTime}`
-      );
-      const hoursUntilAppointment =
-        (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
-
-      let cancellationFee = 0;
-      if (hoursUntilAppointment < 1) {
-        cancellationFee = 50;
-      } else if (hoursUntilAppointment < 24) {
-        cancellationFee = 25;
-      } else {
-        cancellationFee = 10;
-      }
-
-      return res.status(200).send({
-        message: "Appointment cancelled successfully",
-        cancellationFee,
-      });
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
+    // Parse the appointmentDate string to create a Date object
+    const parsedAppointmentDate = new Date(appointmentDate);
+    if (isNaN(parsedAppointmentDate.getTime())) {
+      throw new Error("Invalid appointment date");
     }
+
+    // Set the time to midnight for date comparison
+    parsedAppointmentDate.setUTCHours(0, 0, 0, 0);
+
+    // Update both Patient and Doctor documents in a single operation
+    const bulkOps = [
+      {
+        updateOne: {
+          filter: {
+            _id: doctorId,
+            appointments: {
+              $elemMatch: {
+                patient: new mongoose.Types.ObjectId(patientId),
+                appointmentDate: parsedAppointmentDate,
+                appointmentTime: appointmentTime,
+                appointmentStatus: "pending",
+              },
+            },
+          },
+          update: {
+            $set: { "appointments.$.appointmentStatus": "cancelled" },
+          },
+        },
+      },
+      {
+        updateOne: {
+          filter: {
+            _id: patientId,
+            appointments: {
+              $elemMatch: {
+                doctor: new mongoose.Types.ObjectId(doctorId),
+                appointmentDate: parsedAppointmentDate,
+                appointmentTime: appointmentTime,
+                appointmentStatus: "pending",
+              },
+            },
+          },
+          update: {
+            $set: { "appointments.$.appointmentStatus": "cancelled" },
+          },
+        },
+      },
+    ];
+
+    const result = await Doctor.bulkWrite(bulkOps, { session });
+    console.log(result);
+    // Check if both documents were updated
+    if (result.modifiedCount !== 1) {
+      throw new Error("Failed to update both patient and doctor records");
+    }
+
+    // Calculate cancellation fee
+    const appointmentDateTime = new Date(parsedAppointmentDate);
+    appointmentDateTime.setHours(...appointmentTime.split(":"));
+    const hoursUntilAppointment =
+      (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
+
+    let cancellationFee = 0;
+    if (hoursUntilAppointment < 1) {
+      cancellationFee = 50;
+    } else if (hoursUntilAppointment < 24) {
+      cancellationFee = 25;
+    } else {
+      cancellationFee = 10;
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      message: "Appointment cancelled successfully",
+      cancellationFee,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(500).send({ error: "Internal Server Error" });
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error in cancelAppointment:", error);
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
   }
 };
 exports.rescheduleAppointment = async (req, res) => {
