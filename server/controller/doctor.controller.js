@@ -170,51 +170,54 @@ exports.cancelAppointment = async (req, res) => {
     // Set the time to midnight for date comparison
     parsedAppointmentDate.setUTCHours(0, 0, 0, 0);
 
-    // Update both Patient and Doctor documents in a single operation
-    const bulkOps = [
+    // Update Doctor document
+    const doctorUpdate = await Doctor.findOneAndUpdate(
       {
-        updateOne: {
-          filter: {
-            _id: doctorId,
-            appointments: {
-              $elemMatch: {
-                patient: new mongoose.Types.ObjectId(patientId),
-                appointmentDate: parsedAppointmentDate,
-                appointmentTime: appointmentTime,
-                appointmentStatus: "pending",
-              },
-            },
-          },
-          update: {
-            $set: { "appointments.$.appointmentStatus": "cancelled" },
+        _id: doctorId,
+        appointments: {
+          $elemMatch: {
+            patient: new mongoose.Types.ObjectId(patientId),
+            appointmentDate: parsedAppointmentDate,
+            appointmentTime: appointmentTime,
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
           },
         },
       },
       {
-        updateOne: {
-          filter: {
-            _id: patientId,
-            appointments: {
-              $elemMatch: {
-                doctor: new mongoose.Types.ObjectId(doctorId),
-                appointmentDate: parsedAppointmentDate,
-                appointmentTime: appointmentTime,
-                appointmentStatus: "pending",
-              },
-            },
-          },
-          update: {
-            $set: { "appointments.$.appointmentStatus": "cancelled" },
-          },
-        },
+        $set: { "appointments.$.appointmentStatus": "cancelled" },
       },
-    ];
+      { session, new: true }
+    );
 
-    const result = await Doctor.bulkWrite(bulkOps, { session });
-    console.log(result);
-    // Check if both documents were updated
-    if (result.modifiedCount !== 1) {
-      throw new Error("Failed to update both patient and doctor records");
+    if (!doctorUpdate) {
+      throw new Error(
+        "Failed to update doctor record or appointment not found"
+      );
+    }
+
+    // Update Patient document
+    const patientUpdate = await Patient.findOneAndUpdate(
+      {
+        _id: patientId,
+        appointments: {
+          $elemMatch: {
+            doctor: new mongoose.Types.ObjectId(doctorId),
+            appointmentDate: parsedAppointmentDate,
+            appointmentTime: appointmentTime,
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
+          },
+        },
+      },
+      {
+        $set: { "appointments.$.appointmentStatus": "cancelled" },
+      },
+      { session, new: true }
+    );
+
+    if (!patientUpdate) {
+      throw new Error(
+        "Failed to update patient record or appointment not found"
+      );
     }
 
     // Calculate cancellation fee

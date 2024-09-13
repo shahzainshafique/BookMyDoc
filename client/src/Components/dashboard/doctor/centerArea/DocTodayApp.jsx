@@ -91,9 +91,10 @@ const DocTodayApp = () => {
       appointmentDate: appointment.appointmentDate,
       appointmentTime: appointment.appointmentTime,
     };
-    console.log(postData);
+
     const cancelRes = await cancelAppointment(postData);
-    console.log(cancelRes);
+
+    if (cancelRes) await fetchAppointments();
   };
 
   const handleReschedule = () => {
