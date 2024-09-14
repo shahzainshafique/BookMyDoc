@@ -2,11 +2,14 @@ import { useEffect, useState, useCallback } from "react";
 import Table from "../../../common/Table";
 import useDocCall from "../../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
+import Modal from "../../../common/Modal";
+
 
 const DocTodayApp = () => {
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
+
   const getStatusLabel = (status) => {
     const capitalizedStatus = capitalizeFirstLetter(status);
 
@@ -38,9 +41,14 @@ const DocTodayApp = () => {
     }
   };
 
-  const { getTodayAppointments, cancelAppointment } = useDocCall();
+  const { getTodayAppointments, cancelAppointment, rescheduleAppointment } = useDocCall();
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
+
   const columns = [
     { Header: "Patient's Name", accessor: "name" },
     { Header: "Time", accessor: "time" },
@@ -48,13 +56,14 @@ const DocTodayApp = () => {
     { Header: "Status", accessor: "status" },
     { Header: "Action", accessor: "button" },
   ];
-  // Wrap getTodayAppointments with useCallback to memoize it
+
   const fetchAppointments = useCallback(async () => {
     const { appointments: docApps } = await getTodayAppointments(doctorId);
     console.log("Fetched Appointments:", docApps);
 
     if (Array.isArray(docApps)) {
       const formattedData = docApps.map((appointment) => ({
+        ...appointment,
         name: `${appointment.patient.firstname} ${appointment.patient.lastname}`,
         time: appointment.appointmentTime || "N/A",
         location: appointment.appointmentLocation || "N/A",
@@ -97,17 +106,75 @@ const DocTodayApp = () => {
     if (cancelRes) await fetchAppointments();
   };
 
-  const handleReschedule = () => {
-    console.log("Rescheduled");
+  const handleReschedule = (appointment) => {
+    setSelectedAppointment(appointment);
+    setIsRescheduleModalOpen(true);
   };
+
+  const handleRescheduleSubmit = async () => {
+    if (!selectedAppointment || !newDate || !newTime) return;
+
+    const postData = {
+      patientId: selectedAppointment.patient._id,
+      doctorId: doctorId,
+      oldAppointmentDate: selectedAppointment.appointmentDate,
+      oldAppointmentTime: selectedAppointment.appointmentTime,
+      newAppointmentDate: newDate,
+      newAppointmentTime: newTime,
+    };
+
+    const rescheduleRes = await rescheduleAppointment(postData);
+
+    if (rescheduleRes) {
+      await fetchAppointments();
+      setIsRescheduleModalOpen(false);
+      setSelectedAppointment(null);
+      setNewDate("");
+      setNewTime("");
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
   }, []);
 
   return (
     <div className="flex flex-col space-y-4">
-      <h1 className="font-semibold text-2xl">Todays Appointments</h1>
+      <h1 className="font-semibold text-2xl">Today Appointments</h1>
       <Table columns={columns} data={appointments} />
+
+      <Modal
+        isOpen={isRescheduleModalOpen}
+        onClose={() => setIsRescheduleModalOpen(false)}
+        title="Reschedule Appointment"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-2">New Date:</label>
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block mb-2">New Time:</label>
+            <input
+              type="time"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <button
+            onClick={handleRescheduleSubmit}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Confirm Reschedule
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

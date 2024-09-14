@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
 
-const Table = ({ columns, data, itemsPerPage = 2 }) => {
+const Table = ({ columns, data, itemsPerPage = 5 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
