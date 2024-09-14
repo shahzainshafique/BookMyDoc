@@ -7,8 +7,10 @@ const useDocCall = () => {
 
   const getTodayAppointments = async (doctorId) => {
     try {
+      const today = new Date().toISOString().split("T")[0];
+      console.log(today);
       const { data } = await axios.get(
-        `${url}/api/doctor/appointments/${doctorId}`,
+        `${url}/api/doctor/appointments/${doctorId}?date=${today}`,
         {
           headers: {
             Authorization: token,

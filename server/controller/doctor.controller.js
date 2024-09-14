@@ -125,9 +125,21 @@ exports.fetchDoctorAppointments = async (req, res) => {
     };
 
     if (date) {
+      // Parse the date string into a Date object
       const appointmentDate = new Date(date);
+    
+      if (isNaN(appointmentDate.getTime())) {
+        return res.status(400).send({ message: "Invalid date format" });
+      }
+    
+      // Get the start and end of the given day (in UTC)
+      const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
+      const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
+    
+      // Add to query: appointments with appointmentDate between start and end of day
       query["appointments.appointmentDate"] = {
-        $eq: appointmentDate,
+        $gte: startOfDay,
+        $lte: endOfDay,
       };
     }
     const doctor = await Doctor.findOne(query).populate("appointments.patient");

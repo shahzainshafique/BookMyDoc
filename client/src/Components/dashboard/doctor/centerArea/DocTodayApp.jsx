@@ -3,7 +3,7 @@ import Table from "../../../common/Table";
 import useDocCall from "../../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
 import Modal from "../../../common/Modal";
-
+import { FaCalendarTimes } from "react-icons/fa";
 
 const DocTodayApp = () => {
   const capitalizeFirstLetter = (str) => {
@@ -34,14 +34,15 @@ const DocTodayApp = () => {
         );
       default:
         return (
-          <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+          <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
             {capitalizedStatus}
           </span>
         );
     }
   };
 
-  const { getTodayAppointments, cancelAppointment, rescheduleAppointment } = useDocCall();
+  const { getTodayAppointments, cancelAppointment, rescheduleAppointment } =
+    useDocCall();
   const doctorId = useSelector((state) => state.auth.userId);
   const [appointments, setAppointments] = useState([]);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
@@ -71,7 +72,7 @@ const DocTodayApp = () => {
         button: () => (
           <div className="space-x-2">
             <button
-              className="bg-gray-400 text-white px-2 py-1 rounded"
+              className="bg-gray-200 text-gray-600 px-2 py-1 rounded"
               onClick={() => handleCancellation(appointment)}
             >
               Cancel
@@ -141,7 +142,14 @@ const DocTodayApp = () => {
   return (
     <div className="flex flex-col space-y-4">
       <h1 className="font-semibold text-2xl">Today Appointments</h1>
-      <Table columns={columns} data={appointments} />
+      {appointments.length > 0 ? (
+        <Table columns={columns} data={appointments} />
+      ) : (
+        <div className="flex flex-col rounded-2xl space-y-4 p-20 items-center justify-center bg-white">
+          <FaCalendarTimes className="text-3xl" />
+          <h2 className="text-2xl">No Appointments for Today</h2>
+        </div>
+      )}
 
       <Modal
         isOpen={isRescheduleModalOpen}
@@ -156,6 +164,7 @@ const DocTodayApp = () => {
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
               className="w-full p-2 border rounded"
+              min={new Date().toISOString().split("T")[0]}
             />
           </div>
           <div>
