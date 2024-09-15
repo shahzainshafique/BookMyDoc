@@ -1,4 +1,3 @@
-import React from "react";
 import DocDashStats from "./centerArea/DocDashStats";
 import DocTodayApp from "./centerArea/DocTodayApp";
 

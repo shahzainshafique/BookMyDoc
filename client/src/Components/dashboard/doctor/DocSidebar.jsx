@@ -1,5 +1,10 @@
-import React from "react";
-import { RxDashboard, RxCalendar, RxPieChart, RxPerson,RxChatBubble } from "react-icons/rx";
+import {
+  RxDashboard,
+  RxCalendar,
+  RxPieChart,
+  RxPerson,
+  RxChatBubble,
+} from "react-icons/rx";
 
 const DocSidebar = () => {
   const navigation = [
@@ -11,17 +16,22 @@ const DocSidebar = () => {
   ];
 
   return (
-    <div className="flex flex-col w-64 h-screen space-y-4 m-3 bg-white">
-      {navigation.map((nav, index) => (
-        <div
-          key={index} // Always provide a unique key when mapping
-          tabIndex="0"
-          className="flex flex-row items-center p-5 focus:bg-gray-100 hover:bg-gray-100  rounded-3xl font-semibold font-sans space-x-3"
-        >
-          <span className="text-2xl">{nav.icon}</span>
-          <span>{nav.name}</span>
-        </div>
-      ))}
+    <div className="flex flex-col justify-between w-64 h-screen space-y-1 m-3 bg-white">
+      <div className="space-y-4">
+        {navigation.map((nav, index) => (
+          <div
+            key={index}
+            tabIndex="0"
+            className="flex flex-row items-center p-5 focus:bg-gray-100 hover:bg-gray-100  rounded-3xl font-semibold font-sans space-x-3"
+          >
+            <span className="text-2xl">{nav.icon}</span>
+            <span>{nav.name}</span>
+          </div>
+        ))}
+      </div>
+      <div className="p-5 hover:bg-gray-100 focus:bg-gray-100 rounded-3xl">
+        Logout
+      </div>
     </div>
   );
 };
