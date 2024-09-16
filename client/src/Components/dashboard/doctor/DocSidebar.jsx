@@ -17,7 +17,7 @@ const DocSidebar = () => {
 
   return (
     <div className="flex flex-col justify-between w-64 h-screen space-y-1 m-3 bg-white">
-      <div className="space-y-4">
+      <div className="">
         {navigation.map((nav, index) => (
           <div
             key={index}
