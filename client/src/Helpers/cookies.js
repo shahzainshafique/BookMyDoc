@@ -15,3 +15,8 @@ export const setCookie = (name, value, expiresInSeconds) => {
   const expires = "; expires=" + date.toUTCString();
   document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
 };
+
+export const deleteCookie = (name) => {
+  console.log('delete', name);
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; Secure";
+};
