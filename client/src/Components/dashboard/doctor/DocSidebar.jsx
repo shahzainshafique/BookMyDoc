@@ -6,9 +6,12 @@ import {
   RxChatBubble,
 } from "react-icons/rx";
 import { deleteCookie } from "../../../Helpers/cookies";
+import { useNavigate } from "react-router-dom";
 const DocSidebar = () => {
+  const navigate = useNavigate();
   const handleLogout = () => {
     deleteCookie("authToken");
+    navigate('/logindoc')
   }
   const navigation = [
     { name: "Dashboard", icon: <RxDashboard /> },
