@@ -11,7 +11,7 @@ const DocSidebar = () => {
   const navigate = useNavigate();
   const handleLogout = () => {
     deleteCookie("authToken");
-    navigate('/logindoc')
+    // navigate('/logindoc')
   }
   const navigation = [
     { name: "Dashboard", icon: <RxDashboard /> },
