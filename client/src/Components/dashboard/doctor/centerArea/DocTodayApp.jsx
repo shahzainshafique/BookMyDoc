@@ -148,6 +148,7 @@ const DocTodayApp = () => {
         <div className="flex flex-col rounded-2xl space-y-4 p-20 items-center justify-center bg-white">
           <FaCalendarTimes className="text-3xl" />
           <h2 className="text-2xl">No Appointments for Today</h2>
+          <h3 className="text-xl">Add Some?</h3>
         </div>
       )}
 
