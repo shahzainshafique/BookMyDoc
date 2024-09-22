@@ -7,6 +7,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import DoctorDashboard from "../Pages/dashboard/doctor/doctorDashboard";
 import RegisterPatient from "../Pages/auth/patient/RegisterPatient";
 import LoginPatient from "../Pages/auth/patient/LoginPatient";
+import AddAppointment from "../Pages/dashboard/doctor/AddAppointment";
 
 const AppRouter = () => {
   return (
@@ -23,6 +24,14 @@ const AppRouter = () => {
           element={
             <ProtectedRoute redirectUrl={"/logindoc"} allowedUser={"doctor"}>
               <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/addappointment"
+          element={
+            <ProtectedRoute redirectUrl={"/logindoc"} allowedUser={"doctor"}>
+              <AddAppointment />
             </ProtectedRoute>
           }
         />{" "}
