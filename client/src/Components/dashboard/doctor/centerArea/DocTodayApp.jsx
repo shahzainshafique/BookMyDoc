@@ -174,7 +174,7 @@ const DocTodayApp = () => {
       <Modal
         isOpen={isNewAppModalOpen}
         onClose={() => setIsNewAppModalOpen(false)}
-        title="Reschedule Appointment"
+        title="New Appointment"
       >
         <div className="space-y-4">
           <div>
