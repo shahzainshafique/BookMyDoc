@@ -50,7 +50,7 @@ const DocTodayApp = () => {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [newDate, setNewDate] = useState("");
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTime, setNewTime] = useState("");
 
   const columns = [
@@ -200,7 +200,7 @@ const DocTodayApp = () => {
             onClick={handleRescheduleSubmit}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
-            Confirm Reschedule
+            Add Appointment
           </button>
         </div>
       </Modal>
