@@ -4,6 +4,7 @@ import DocSidebar from "../../../Components/dashboard/doctor/DocSidebar";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import useDocCall from "../../../Hooks/useDocCall";
 const schema = yup.object().shape({
   patientId: yup.string().required("Patient ID is required"),
   doctorId: yup.string().required("Doctor ID is required"),
@@ -22,8 +23,11 @@ const AddAppointment = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data) => {
+  const { createAppointment } = useDocCall();
+  const onSubmit = async (data) => {
     console.log(data);
+    const appointmentData = await createAppointment(data);
+    console.log(appointmentData);
     // Here you would typically send the data to your API
   };
 

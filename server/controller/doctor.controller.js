@@ -113,58 +113,59 @@ exports.getTotalAppointments = async (req, res) => {
   }
 };
 
-exports.fetchDoctorAppointments = async (req, res) => {
-  try {
-    const { doctorId } = req.params;
-    const { date } = req.query;
-    if (!doctorId) {
-      return res.status(400).send({ message: "Doctor ID is required!" });
-    }
-    const query = {
-      _id: doctorId,
-    };
+// exports.fetchDoctorAppointments = async (req, res) => {
+//   try {
+//     const { doctorId } = req.params;
+//     console.log(doctorId);
+//     const { date } = req.query;
+//     if (!doctorId) {
+//       return res.status(400).send({ message: "Doctor ID is required!" });
+//     }
+//     const query = {
+//       _id: doctorId,
+//     };
 
-    if (date) {
-      // Parse the date string into a Date object
-      const appointmentDate = new Date(date);
+//     if (date) {
+//       // Parse the date string into a Date object
+//       const appointmentDate = new Date(date);
     
-      if (isNaN(appointmentDate.getTime())) {
-        return res.status(400).send({ message: "Invalid date format" });
-      }
+//       if (isNaN(appointmentDate.getTime())) {
+//         return res.status(400).send({ message: "Invalid date format" });
+//       }
     
-      // Get the start and end of the given day (in UTC)
-      const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
-      const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
+//       // Get the start and end of the given day (in UTC)
+//       const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
+//       const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
     
-      // Add to query: appointments with appointmentDate between start and end of day
-      query["appointments.appointmentDate"] = {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      };
-    }
-    const doctor = await Doctor.findOne(query).populate("appointments.patient");
-    if (!doctor) {
-      return res.status(404).send({ error: "Doctor not found." });
-    }
+//       // Add to query: appointments with appointmentDate between start and end of day
+//       query["appointments.appointmentDate"] = {
+//         $gte: startOfDay,
+//         $lte: endOfDay,
+//       };
+//     }
+//     const doctor = await Doctor.findOne(query).populate("appointments.patient");
+//     if (!doctor) {
+//       return res.status(404).send({ error: "Doctor not found." });
+//     }
 
-    // Filter the appointments based on status and optionally date
-    const filteredAppointments = doctor.appointments.filter((appointment) => {
-      if (
-        date &&
-        appointment.appointmentDate.toDateString() !==
-          new Date(date).toDateString()
-      ) {
-        return false;
-      }
-      return true;
-    });
+//     // Filter the appointments based on status and optionally date
+//     const filteredAppointments = doctor.appointments.filter((appointment) => {
+//       if (
+//         date &&
+//         appointment.appointmentDate.toDateString() !==
+//           new Date(date).toDateString()
+//       ) {
+//         return false;
+//       }
+//       return true;
+//     });
 
-    return res.status(200).send({ appointments: filteredAppointments });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({ error: "Internal Server Error" });
-  }
-};
+//     return res.status(200).send({ appointments: filteredAppointments });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).send({ error: "Internal Server Error" });
+//   }
+// };
 exports.cancelAppointment = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -336,3 +337,111 @@ exports.rescheduleAppointment = async (req, res) => {
     res.status(500).send({ error });
   }
 };
+exports.createDocAppointment = async (req, res) => {
+  console.log('s')
+  console.log(req.body);
+
+    try {
+      const {
+        patientId,
+        doctorId,
+        appointmentDate,
+        appointmentTime,
+        appointmentLocation,
+      } = req.body;
+      if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+        return res.status(400).send({ error: "Invalid doctor ID" });
+      }
+      // Start the timer
+      const startTime = new Date();
+  
+      // Check for conflicting appointments in the Doctor's collection
+      const conflictingAppointment = await Doctor.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(doctorId),
+          },
+        },
+        {
+          $unwind: "$appointments",
+        },
+        {
+          $match: {
+            "appointments.appointmentDate": new Date(appointmentDate),
+            "appointments.appointmentTime": appointmentTime,
+          },
+        },
+      ]);
+  
+      // End the timer
+      const endTime = new Date();
+      const timeTaken = endTime - startTime;
+      console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
+  
+      if (conflictingAppointment.length > 0) {
+        return res.status(400).send({
+          error: "Doctor is already booked at this time",
+        });
+      }
+  
+      // Begin transaction
+      const session = await mongoose.startSession();
+      session.startTransaction();
+  
+      try {
+        // Update patient record
+        await Patient.findByIdAndUpdate(
+          patientId,
+          {
+            $push: {
+              appointments: {
+                doctor: doctorId,
+                appointmentDate,
+                appointmentTime,
+                appointmentLocation,
+              },
+            },
+          },
+          { new: true, session }
+        );
+  
+        // Update doctor record to add the appointment
+        await Doctor.findByIdAndUpdate(
+          doctorId,
+          {
+            $push: {
+              appointments: {
+                patient: patientId,
+                appointmentDate,
+                appointmentTime,
+                appointmentLocation,
+              },
+            },
+          },
+          { new: true, session }
+        );
+  
+        // Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+  
+        return res.status(201).send({
+          message: `Appointment booked successfully in ${timeTaken}ms`,
+          appointment: {
+            doctor: doctorId,
+            appointmentDate,
+            appointmentTime,
+            appointmentLocation,
+          },
+        });
+      } catch (error) {
+        // Abort the transaction in case of an error
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({ error: "Internal Server Error" });
+    }
+  };
