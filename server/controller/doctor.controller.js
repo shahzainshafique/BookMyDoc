@@ -113,85 +113,81 @@ exports.getTotalAppointments = async (req, res) => {
   }
 };
 
-// exports.fetchDoctorAppointments = async (req, res) => {
-//   try {
-//     const { doctorId } = req.params;
-//     console.log(doctorId);
-//     const { date } = req.query;
-//     if (!doctorId) {
-//       return res.status(400).send({ message: "Doctor ID is required!" });
-//     }
-//     const query = {
-//       _id: doctorId,
-//     };
+exports.fetchDoctorAppointments = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { date } = req.query;
+    if (!doctorId) {
+      return res.status(400).send({ message: "Doctor ID is required!" });
+    }
+    const query = {
+      _id: doctorId,
+    };
 
-//     if (date) {
-//       // Parse the date string into a Date object
-//       const appointmentDate = new Date(date);
+    if (date) {
+      // Parse the date string into a Date object
+      const appointmentDate = new Date(date);
     
-//       if (isNaN(appointmentDate.getTime())) {
-//         return res.status(400).send({ message: "Invalid date format" });
-//       }
+      if (isNaN(appointmentDate.getTime())) {
+        return res.status(400).send({ message: "Invalid date format" });
+      }
     
-//       // Get the start and end of the given day (in UTC)
-//       const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
-//       const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
+      // Get the start and end of the given day (in UTC)
+      const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
+      const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
     
-//       // Add to query: appointments with appointmentDate between start and end of day
-//       query["appointments.appointmentDate"] = {
-//         $gte: startOfDay,
-//         $lte: endOfDay,
-//       };
-//     }
-//     const doctor = await Doctor.findOne(query).populate("appointments.patient");
-//     if (!doctor) {
-//       return res.status(404).send({ error: "Doctor not found." });
-//     }
+      // Add to query: appointments with appointmentDate between start and end of day
+      query["appointments.appointmentDate"] = {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      };
+    }
+    const doctor = await Doctor.findOne(query).populate("appointments.patient");
+    if (!doctor) {
+      return res.status(404).send({ error: "Doctor not found." });
+    }
 
-//     // Filter the appointments based on status and optionally date
-//     const filteredAppointments = doctor.appointments.filter((appointment) => {
-//       if (
-//         date &&
-//         appointment.appointmentDate.toDateString() !==
-//           new Date(date).toDateString()
-//       ) {
-//         return false;
-//       }
-//       return true;
-//     });
+    // Filter the appointments based on status and optionally date
+    const filteredAppointments = doctor.appointments.filter((appointment) => {
+      if (
+        date &&
+        appointment.appointmentDate.toDateString() !==
+          new Date(date).toDateString()
+      ) {
+        return false;
+      }
+      return true;
+    });
 
-//     return res.status(200).send({ appointments: filteredAppointments });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).send({ error: "Internal Server Error" });
-//   }
-// };
+    return res.status(200).send({ appointments: filteredAppointments });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
 exports.cancelAppointment = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { patientId, doctorId, appointmentDate, appointmentTime } = req.body;
+    const { appointmentId, doctorId, patientId } = req.body;
     const cancellationTime = new Date();
+    console.log("Received appointmentId:", new mongoose.Types.ObjectId(appointmentId));
 
-    // Parse the appointmentDate string to create a Date object
-    const parsedAppointmentDate = new Date(appointmentDate);
-    if (isNaN(parsedAppointmentDate.getTime())) {
-      throw new Error("Invalid appointment date");
+    // Validate appointmentId
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      throw new Error("Invalid appointment ID");
     }
-
-    // Set the time to midnight for date comparison
-    parsedAppointmentDate.setUTCHours(0, 0, 0, 0);
-
-    // Update Doctor document
+    const doctor = await Doctor.findOne({
+      "appointments._id": new mongoose.Types.ObjectId(appointmentId),
+    });
+    console.log("Matched Doctor document:", doctor);
     const doctorUpdate = await Doctor.findOneAndUpdate(
       {
         _id: doctorId,
         appointments: {
           $elemMatch: {
-            patient: new mongoose.Types.ObjectId(patientId),
-            appointmentDate: parsedAppointmentDate,
-            appointmentTime: appointmentTime,
+            _id: new mongoose.Types.ObjectId(appointmentId),
             appointmentStatus: { $nin: ["completed", "cancelled"] },
           },
         },
@@ -201,22 +197,21 @@ exports.cancelAppointment = async (req, res) => {
       },
       { session, new: true }
     );
-
+    
     if (!doctorUpdate) {
-      throw new Error(
-        "Failed to update doctor record or appointment not found"
-      );
+      console.error("Doctor not found or appointment already completed/cancelled");
+      throw new Error("Failed to update doctor record or appointment not found");
     }
-
-    // Update Patient document
+    
+    console.log("Doctor updated successfully:", doctorUpdate);
+    
+    // Find and update the Patient's document to cancel the appointment
     const patientUpdate = await Patient.findOneAndUpdate(
       {
         _id: patientId,
         appointments: {
           $elemMatch: {
-            doctor: new mongoose.Types.ObjectId(doctorId),
-            appointmentDate: parsedAppointmentDate,
-            appointmentTime: appointmentTime,
+            _id: new mongoose.Types.ObjectId(appointmentId),
             appointmentStatus: { $nin: ["completed", "cancelled"] },
           },
         },
@@ -233,9 +228,18 @@ exports.cancelAppointment = async (req, res) => {
       );
     }
 
-    // Calculate cancellation fee
-    const appointmentDateTime = new Date(parsedAppointmentDate);
-    appointmentDateTime.setHours(...appointmentTime.split(":"));
+    // Calculate cancellation fee based on appointment time
+    const appointment = doctorUpdate.appointments.find(
+      (appt) => appt._id.toString() === appointmentId
+    );
+
+    if (!appointment) {
+      throw new Error("Appointment details not found in Doctor's record");
+    }
+
+    const appointmentDateTime = new Date(appointment.appointmentDate);
+    appointmentDateTime.setHours(...appointment.appointmentTime.split(":"));
+
     const hoursUntilAppointment =
       (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
 
@@ -248,6 +252,7 @@ exports.cancelAppointment = async (req, res) => {
       cancellationFee = 10;
     }
 
+    // Commit the transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -256,6 +261,7 @@ exports.cancelAppointment = async (req, res) => {
       cancellationFee,
     });
   } catch (error) {
+    // Abort the transaction in case of an error
     await session.abortTransaction();
     session.endSession();
     console.error("Error in cancelAppointment:", error);
@@ -264,6 +270,7 @@ exports.cancelAppointment = async (req, res) => {
       .json({ error: error.message || "Internal Server Error" });
   }
 };
+
 exports.rescheduleAppointment = async (req, res) => {
   try {
     const {

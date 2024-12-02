@@ -99,6 +99,7 @@ const DocTodayApp = () => {
   const handleCancellation = async (appointment) => {
     console.log(appointment);
     const postData = {
+      appointmentId: appointment._id,
       patientId: appointment.patient._id,
       doctorId: doctorId,
       appointmentDate: appointment.appointmentDate,
@@ -144,7 +145,15 @@ const DocTodayApp = () => {
 
   return (
     <div className="flex flex-col space-y-4">
+      <div className="flex justify-between items-center space-x-4">
       <h1 className="font-semibold text-2xl">Today Appointments</h1>
+      <button
+              className="bg-green-500 text-white px-2 py-1 rounded"
+              onClick={() => navigate('/addappointment')}
+            >
+              Add new +
+            </button>
+      </div>
       {appointments.length > 0 ? (
         <Table columns={columns} data={appointments} />
       ) : (
