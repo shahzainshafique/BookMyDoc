@@ -99,7 +99,7 @@ const DocTodayApp = () => {
   const handleCancellation = async (appointment) => {
     console.log(appointment);
     const postData = {
-      appointmentId: appointment._id,
+      appointmentId: appointment.appointmentId,
       patientId: appointment.patient._id,
       doctorId: doctorId,
       appointmentDate: appointment.appointmentDate,

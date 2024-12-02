@@ -10,7 +10,8 @@ const useDocCall = () => {
       const today = new Date().toISOString().split("T")[0];
       console.log(today);
       const { data } = await axios.get(
-        `${url}/api/doctor/appointments/${doctorId}?date=${today}`,
+        `${url}/api/doctor/appointments/${doctorId}`,
+        // `${url}/api/doctor/appointments/${doctorId}?date=${today}`,
         {
           headers: {
             Authorization: token,
@@ -70,6 +71,7 @@ const useDocCall = () => {
           },
         }
       );
+     return data;
     } catch (error) {
       console.log(error);
     }

@@ -2,7 +2,7 @@ const { default: mongoose } = require("mongoose");
 const Doctor = require("../models/Doctors.model");
 const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
-
+const { v4: uuidv4 } = require("uuid");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.createDoctor = async (req, res) => {
@@ -121,7 +121,7 @@ exports.fetchDoctorAppointments = async (req, res) => {
       return res.status(400).send({ message: "Doctor ID is required!" });
     }
     const query = {
-      _id: doctorId,
+      _id: new mongoose.Types.ObjectId(doctorId),
     };
 
     if (date) {
@@ -172,49 +172,38 @@ exports.cancelAppointment = async (req, res) => {
   try {
     const { appointmentId, doctorId, patientId } = req.body;
     const cancellationTime = new Date();
-    console.log("Received appointmentId:", new mongoose.Types.ObjectId(appointmentId));
-
-    // Validate appointmentId
-    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
-      throw new Error("Invalid appointment ID");
+console.log(req.body)
+    // Validate inputs
+    if (
+      !appointmentId ||
+      !mongoose.Types.ObjectId.isValid(doctorId) ||
+      !mongoose.Types.ObjectId.isValid(patientId)
+    ) {
+      throw new Error("Invalid appointment or IDs provided");
     }
-    const doctor = await Doctor.findOne({
-      "appointments._id": new mongoose.Types.ObjectId(appointmentId),
-    });
-    console.log("Matched Doctor document:", doctor);
+
+    // Update the doctor's document
     const doctorUpdate = await Doctor.findOneAndUpdate(
       {
-        _id: doctorId,
-        appointments: {
-          $elemMatch: {
-            _id: new mongoose.Types.ObjectId(appointmentId),
-            appointmentStatus: { $nin: ["completed", "cancelled"] },
-          },
-        },
+        _id: new mongoose.Types.ObjectId(doctorId),
+        "appointments.appointmentId": appointmentId,
+        "appointments.appointmentStatus": { $nin: ["completed", "cancelled"] },
       },
       {
         $set: { "appointments.$.appointmentStatus": "cancelled" },
       },
       { session, new: true }
     );
-    
     if (!doctorUpdate) {
-      console.error("Doctor not found or appointment already completed/cancelled");
-      throw new Error("Failed to update doctor record or appointment not found");
+      throw new Error("Doctor or appointment not found, or appointment already completed/cancelled");
     }
-    
-    console.log("Doctor updated successfully:", doctorUpdate);
-    
-    // Find and update the Patient's document to cancel the appointment
+
+    // Update the patient's document
     const patientUpdate = await Patient.findOneAndUpdate(
       {
-        _id: patientId,
-        appointments: {
-          $elemMatch: {
-            _id: new mongoose.Types.ObjectId(appointmentId),
-            appointmentStatus: { $nin: ["completed", "cancelled"] },
-          },
-        },
+        _id: new mongoose.Types.ObjectId(patientId),
+        "appointments.appointmentId": appointmentId,
+        "appointments.appointmentStatus": { $nin: ["completed", "cancelled"] },
       },
       {
         $set: { "appointments.$.appointmentStatus": "cancelled" },
@@ -222,15 +211,13 @@ exports.cancelAppointment = async (req, res) => {
       { session, new: true }
     );
 
-    if (!patientUpdate) {
-      throw new Error(
-        "Failed to update patient record or appointment not found"
-      );
-    }
+    // if (!patientUpdate) {
+    //   throw new Error("Patient or appointment not found, or appointment already completed/cancelled");
+    // }
 
-    // Calculate cancellation fee based on appointment time
+    // Calculate cancellation fee
     const appointment = doctorUpdate.appointments.find(
-      (appt) => appt._id.toString() === appointmentId
+      (appt) => appt.appointmentId === appointmentId
     );
 
     if (!appointment) {
@@ -270,6 +257,9 @@ exports.cancelAppointment = async (req, res) => {
       .json({ error: error.message || "Internal Server Error" });
   }
 };
+
+
+
 
 exports.rescheduleAppointment = async (req, res) => {
   try {
@@ -345,110 +335,115 @@ exports.rescheduleAppointment = async (req, res) => {
   }
 };
 exports.createDocAppointment = async (req, res) => {
-  console.log('s')
-  console.log(req.body);
+  try {
+    const {
+      patientId,
+      doctorId,
+      appointmentDate,
+      appointmentTime,
+      appointmentLocation,
+    } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).send({ error: "Invalid doctor ID" });
+    }
+
+    // Generate a unique appointment ID
+    const appointmentId = uuidv4();
+
+    // Start the timer
+    const startTime = new Date();
+
+    // Check for conflicting appointments in the Doctor's collection
+    const conflictingAppointment = await Doctor.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(doctorId),
+        },
+      },
+      {
+        $unwind: "$appointments",
+      },
+      {
+        $match: {
+          "appointments.appointmentDate": new Date(appointmentDate),
+          "appointments.appointmentTime": appointmentTime,
+        },
+      },
+    ]);
+
+    // End the timer
+    const endTime = new Date();
+    const timeTaken = endTime - startTime;
+    console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
+
+    if (conflictingAppointment.length > 0) {
+      return res.status(400).send({
+        error: "Doctor is already booked at this time",
+      });
+    }
+
+    // Begin transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
     try {
-      const {
+      // Add appointment to patient record
+      await Patient.findByIdAndUpdate(
         patientId,
+        {
+          $push: {
+            appointments: {
+              appointmentId, // Use the same appointment ID
+              doctor: doctorId,
+              appointmentDate,
+              appointmentTime,
+              appointmentLocation,
+            },
+          },
+        },
+        { new: true, session }
+      );
+
+      // Add appointment to doctor record
+      await Doctor.findByIdAndUpdate(
         doctorId,
-        appointmentDate,
-        appointmentTime,
-        appointmentLocation,
-      } = req.body;
-      if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-        return res.status(400).send({ error: "Invalid doctor ID" });
-      }
-      // Start the timer
-      const startTime = new Date();
-  
-      // Check for conflicting appointments in the Doctor's collection
-      const conflictingAppointment = await Doctor.aggregate([
         {
-          $match: {
-            _id: new mongoose.Types.ObjectId(doctorId),
-          },
-        },
-        {
-          $unwind: "$appointments",
-        },
-        {
-          $match: {
-            "appointments.appointmentDate": new Date(appointmentDate),
-            "appointments.appointmentTime": appointmentTime,
-          },
-        },
-      ]);
-  
-      // End the timer
-      const endTime = new Date();
-      const timeTaken = endTime - startTime;
-      console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
-  
-      if (conflictingAppointment.length > 0) {
-        return res.status(400).send({
-          error: "Doctor is already booked at this time",
-        });
-      }
-  
-      // Begin transaction
-      const session = await mongoose.startSession();
-      session.startTransaction();
-  
-      try {
-        // Update patient record
-        await Patient.findByIdAndUpdate(
-          patientId,
-          {
-            $push: {
-              appointments: {
-                doctor: doctorId,
-                appointmentDate,
-                appointmentTime,
-                appointmentLocation,
-              },
+          $push: {
+            appointments: {
+              appointmentId, // Use the same appointment ID
+              patient: patientId,
+              appointmentDate,
+              appointmentTime,
+              appointmentLocation,
             },
           },
-          { new: true, session }
-        );
-  
-        // Update doctor record to add the appointment
-        await Doctor.findByIdAndUpdate(
-          doctorId,
-          {
-            $push: {
-              appointments: {
-                patient: patientId,
-                appointmentDate,
-                appointmentTime,
-                appointmentLocation,
-              },
-            },
-          },
-          { new: true, session }
-        );
-  
-        // Commit the transaction
-        await session.commitTransaction();
-        session.endSession();
-  
-        return res.status(201).send({
-          message: `Appointment booked successfully in ${timeTaken}ms`,
-          appointment: {
-            doctor: doctorId,
-            appointmentDate,
-            appointmentTime,
-            appointmentLocation,
-          },
-        });
-      } catch (error) {
-        // Abort the transaction in case of an error
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
-      }
+        },
+        { new: true, session }
+      );
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return res.status(201).send({
+        message: `Appointment booked successfully in ${timeTaken}ms`,
+        appointment: {
+          appointmentId,
+          doctor: doctorId,
+          appointmentDate,
+          appointmentTime,
+          appointmentLocation,
+        },
+      });
     } catch (error) {
-      console.log(error);
-      return res.status(500).send({ error: "Internal Server Error" });
+      // Abort the transaction in case of an error
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
     }
-  };
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};

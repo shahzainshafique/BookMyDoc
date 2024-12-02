@@ -26,6 +26,11 @@ const patientSchema = mongoose.Schema({
   },
   appointments: [
     {
+      appointmentId: {
+        type: String,
+        required: true, // Ensures every appointment has a unique identifier
+        unique: true,   // Enforces uniqueness for this identifier
+      },
       doctor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Doctor",
