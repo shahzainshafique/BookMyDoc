@@ -145,17 +145,16 @@ const DocTodayApp = () => {
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex justify-between items-center space-x-4">
       <h1 className="font-semibold text-2xl">Today Appointments</h1>
-      <button
-              className="bg-green-500 text-white px-2 py-1 rounded"
-              onClick={() => navigate('/addappointment')}
-            >
-              Add new +
-            </button>
-      </div>
-      {appointments.length > 0 ? (
-        <Table columns={columns} data={appointments} />
+      
+      {appointments.length > 0 ? (<>      <button
+      className="bg-green-500 text-white px-2 py-1 rounded self-end"
+      onClick={() => navigate('/addappointment')}
+    >
+      Add new +
+    </button>
+        <Table columns={columns} data={appointments} /></>
+
       ) : (
         <div className="flex flex-col rounded-2xl space-y-4 p-20 items-center justify-center bg-white">
           <FaCalendarTimes className="text-3xl" />
@@ -163,7 +162,7 @@ const DocTodayApp = () => {
           <button
             className="font-sans flex justify-center gap-2 items-center mx-auto shadow-xl text-lg text-gray-50 bg-[#0A0D2D] backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-blue-500 hover:text-gray-50before:aspect-square before:hover:scale-150 before:hover:duration-700 relative px-4 py-2 overflow-hidden border-2 rounded-full group"
             type="submit"
-            onClick={() => setIsNewAppModalOpen(true)}
+            onClick={() => navigate("/addappointment")}
           >
             Add one?
             <svg
