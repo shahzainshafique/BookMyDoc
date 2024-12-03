@@ -447,3 +447,12 @@ exports.createDocAppointment = async (req, res) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+exports.createPatient = async (req, res) => {
+  try {
+    const patient = new Patient(req.body);
+    await patient.save();
+    return res.status(200).send(patient);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}

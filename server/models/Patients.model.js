@@ -14,22 +14,35 @@ const patientSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  isGuest: {
+    type: Boolean,
+    default: false,
+  },
   email: {
     type: String,
-    required: true,
-    unique: true,
     lowercase: true,
+    validate: {
+      validator: function (v) {
+        return this.isGuest || (v && v.length > 0); // Email is required only if not a guest
+      },
+      message: "Email is required for non-guest users.",
+    },
   },
   password: {
     type: String,
-    required: true,
+    validate: {
+      validator: function (v) {
+        return this.isGuest || (v && v.length > 0); // Password is required only if not a guest
+      },
+      message: "Password is required for non-guest users.",
+    },
   },
   appointments: [
     {
       appointmentId: {
         type: String,
-        required: true, // Ensures every appointment has a unique identifier
-        unique: true,   // Enforces uniqueness for this identifier
+        required: true,
+        unique: true,
       },
       doctor: {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,6 +68,7 @@ const patientSchema = mongoose.Schema({
     },
   ],
 });
+
 
 patientSchema.pre("save", function (next) {
   const patient = this;

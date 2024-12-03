@@ -6,16 +6,29 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import useDocCall from "../../../Hooks/useDocCall";
 import { useSelector } from "react-redux";
+import Modal from "../../../Components/common/Modal";
+import { useState } from "react";
+
 const schema = yup.object().shape({
-  patientId: yup.string().required("Patient ID is required"),
+  patientName: yup.string().required("Patient Name is required"),
   appointmentDate: yup.date().required("Appointment date is required"),
   appointmentTime: yup.string().required("Appointment time is required"),
   appointmentLocation: yup
     .string()
     .required("Appointment location is required"),
 });
+
+const patientSchema = yup.object().shape({
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().required("Last name is required"),
+  phone: yup.number().required("Phone number is required!"),
+  email: yup.string().email(),
+});
+
 const AddAppointment = () => {
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [patientName, setPatientName] = useState("");  // To hold the patient ID value (patient's name initially)
+
   const {
     register,
     handleSubmit,
@@ -23,14 +36,34 @@ const AddAppointment = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+  const {
+    register: registerPatient,
+    handleSubmit: handleSubmitPatient,
+    formState: { errors: patientErrors },
+  } = useForm({
+    resolver: yupResolver(patientSchema),
+  });
   const currentUser = useSelector((state) => state.auth.userId);
   const { createAppointment } = useDocCall();
+
   const onSubmit = async (data) => {
     console.log(currentUser);
     data.doctorId = currentUser;
     console.log(data);
     const appointmentData = await createAppointment(data);
     console.log(appointmentData);
+  };
+
+  const handleAddPatient = async (data) => {
+    try {
+      // Add patient logic
+      console.log("Patient Added:", data);
+      setPatientName(data.firstName + " " + data.LastName);  // Set the patient ID to the patient's name
+
+      setIsModalOpen(false); 
+    } catch (error) {
+      console.log("Error adding patient:", error);
+    }
   };
 
   return (
@@ -42,18 +75,20 @@ const AddAppointment = () => {
           Add Appointment below
           <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-xl w-3/5">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="flex flex-row">
+              <div className="flex flex-row items-center justify-center">
                 <Field
-                  label="Patient ID"
-                  placeholder="Enter patient ID"
+                  label="Patient Name"
+                  placeholder="Enter Patient Name"
                   type="text"
-                  regVal="patientId"
+                  regVal="patientName"
                   register={register}
+                  value={patientName}
                   errors={errors}
                 />
                 <button
                   title="Add New"
                   className="group cursor-pointer outline-none hover:rotate-90 duration-300"
+                  onClick={() => setIsModalOpen(true)}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -68,14 +103,6 @@ const AddAppointment = () => {
                   </svg>
                 </button>
               </div>
-              {/* <Field
-                label="Doctor ID"
-                placeholder="Enter doctor ID"
-                type="text"
-                regVal="doctorId"
-                register={register}
-                errors={errors}
-              /> */}
               <Field
                 label="Appointment Date"
                 placeholder="Select appointment date"
@@ -109,6 +136,62 @@ const AddAppointment = () => {
             </form>
           </div>
         </section>
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Patient">
+  <form onSubmit={handleSubmitPatient(handleAddPatient)} className="space-y-4">
+    <div>
+      <label className="block mb-2">First Name:</label>
+      <input
+        type="text"
+        className="w-full p-2 border rounded"
+        placeholder="Enter first name"
+        {...registerPatient("firstName")}
+      />
+      {patientErrors.firstName && (
+        <span className="text-red-500">{patientErrors.firstName.message}</span>
+      )}
+    </div>
+    <div>
+      <label className="block mb-2">Last Name:</label>
+      <input
+        type="text"
+        className="w-full p-2 border rounded"
+        placeholder="Enter last name"
+        {...registerPatient("lastName")}
+      />
+      {patientErrors.lastName && (
+        <span className="text-red-500">{patientErrors.lastName.message}</span>
+      )}
+    </div>
+    <div>
+      <label className="block mb-2">Email:</label>
+      <input
+        type="email"
+        className="w-full p-2 border rounded"
+        placeholder="Enter email"
+        {...registerPatient("email")}
+      />
+      {patientErrors.email && (
+        <span className="text-red-500">{patientErrors.email.message}</span>
+      )}
+    </div>
+    <div>
+      <label className="block mb-2">Phone:</label>
+      <input
+        type="tel"
+        className="w-full p-2 border rounded"
+        placeholder="Enter phone number"
+        {...registerPatient("phone")}
+      />
+      {patientErrors.phone && (
+        <span className="text-red-500">{patientErrors.phone.message}</span>
+      )}
+    </div>
+    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      Add Patient
+    </button>
+  </form>
+</Modal>
+
       </div>
     </>
   );
