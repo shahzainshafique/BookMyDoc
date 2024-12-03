@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import useDocCall from "../../../Hooks/useDocCall";
+import { useSelector } from "react-redux";
 const schema = yup.object().shape({
   patientId: yup.string().required("Patient ID is required"),
-  doctorId: yup.string().required("Doctor ID is required"),
   appointmentDate: yup.date().required("Appointment date is required"),
   appointmentTime: yup.string().required("Appointment time is required"),
   appointmentLocation: yup
@@ -15,6 +15,7 @@ const schema = yup.object().shape({
     .required("Appointment location is required"),
 });
 const AddAppointment = () => {
+  
   const {
     register,
     handleSubmit,
@@ -22,13 +23,14 @@ const AddAppointment = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-
+  const currentUser = useSelector((state) => state.auth.userId);
   const { createAppointment } = useDocCall();
   const onSubmit = async (data) => {
+    console.log(currentUser);
+    data.doctorId = currentUser;
     console.log(data);
     const appointmentData = await createAppointment(data);
     console.log(appointmentData);
-    // Here you would typically send the data to your API
   };
 
   return (
@@ -66,14 +68,14 @@ const AddAppointment = () => {
                   </svg>
                 </button>
               </div>
-              <Field
+              {/* <Field
                 label="Doctor ID"
                 placeholder="Enter doctor ID"
                 type="text"
                 regVal="doctorId"
                 register={register}
                 errors={errors}
-              />
+              /> */}
               <Field
                 label="Appointment Date"
                 placeholder="Select appointment date"
