@@ -449,10 +449,12 @@ exports.createDocAppointment = async (req, res) => {
 };
 exports.createPatient = async (req, res) => {
   try {
+    console.log(req.body);
     const patient = new Patient(req.body);
     await patient.save();
     return res.status(200).send(patient);
   } catch (error) {
+    console.error("Error creating patient:", error);
     res.status(500).send(error);
   }
 }

@@ -76,7 +76,21 @@ const useDocCall = () => {
       console.log(error);
     }
   };
-  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment };
+  const addPatient = async (userData) => {
+    try {
+      const { data } = await axios.post(`${url}/api/doctor/appointments/create-patient`, userData, {
+        headers: {
+          Authorization: token,
+        },
+      });
+      console.log(data);
+      
+    } catch (error) {
+      alert(error.response.data.error);
+      console.log(error);
+    }
+  };
+  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment, addPatient  };
 };
 
 export default useDocCall;
