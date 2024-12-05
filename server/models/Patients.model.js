@@ -41,6 +41,7 @@ const patientSchema = mongoose.Schema({
     {
       appointmentId: {
         type: String,
+        sparse: true,
       },
       doctor: {
         type: mongoose.Schema.Types.ObjectId,

@@ -64,9 +64,10 @@ const AddAppointment = () => {
       if(!data.email) {
         delete data.email;
         data.isGuest = true;
-
-      } // Remove email if not provided
-      const newPatient = await addPatient(data);
+      } 
+      // data.appointments = [];
+      // data.appointments.push({ appointmentId: '1' });
+      const newPatient = await addPatient(data);  
       console.log('New patient:', newPatient);
       if(!newPatient.error) {
         alert('Patient added successfully');
