@@ -90,7 +90,20 @@ const useDocCall = () => {
       console.log(error);
     }
   };
-  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment, addPatient  };
+  const getPatients = async (doctorId) => {
+    try {
+      const { data } = await axios.get(`${url}/api/doctor/get-all-patients/${doctorId}`, {
+        headers: {
+          Authorization: token,
+        },
+      });
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment, addPatient,getPatients  };
 };
 
 export default useDocCall;

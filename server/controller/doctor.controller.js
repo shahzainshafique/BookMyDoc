@@ -458,3 +458,31 @@ exports.createPatient = async (req, res) => {
     res.status(500).send(error);
   }
 }
+exports.getPatientsByDoc = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Find appointments for this doctor across all patients
+    const patientsWithAppointments = await Patient.find({
+      'appointments.doctor': doctorId
+    }).select('firstname lastname phonenumber appointments');
+
+    // Transform the results to get unique patients with their appointment details
+    const uniquePatients = patientsWithAppointments.map(patient => ({
+      _id: patient._id,
+      firstname: patient.firstname,
+      lastname: patient.lastname,
+      phonenumber: patient.phonenumber,
+      appointments: patient.appointments.filter(app => app.doctor.toString() === doctorId)
+    }));
+
+    return res.status(200).json(uniquePatients);
+  }
+  catch (error) {
+    console.error("Error fetching patients:", error);
+    res.status(500).json({ 
+      message: "Error fetching patients", 
+      error: error.message 
+    });
+  }
+}

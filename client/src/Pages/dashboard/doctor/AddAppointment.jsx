@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -33,6 +33,8 @@ const patientSchema = yup.object().shape({
 const AddAppointment = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [patientName, setPatientName] = useState('');
+  const [patientId, setPatientId] = useState('');
+  const [patients, setPatients] = useState([]);
 
   // Appointment form hooks
   const {
@@ -56,7 +58,21 @@ const AddAppointment = () => {
   });
 
   const currentUser = useSelector((state) => state.auth.userId);
-  const { createAppointment, addPatient } = useDocCall();
+  const { createAppointment, addPatient, getPatients } = useDocCall();
+  //Load patients
+  useEffect(() => {
+    const loadPatients = async () => {
+      try {
+        const patients = await getPatients(currentUser);
+        console.log('patients:', patients);
+        setPatients(patients);
+      } catch (error) {
+        console.error('Error loading patients:', error);
+      }
+    };
+    loadPatients();
+  }, []);
+
 
   const onSubmitPatient = useCallback(async (data) => {
     try {
@@ -65,8 +81,6 @@ const AddAppointment = () => {
         delete data.email;
         data.isGuest = true;
       } 
-      // data.appointments = [];
-      // data.appointments.push({ appointmentId: '1' });
       const newPatient = await addPatient(data);  
       console.log('New patient:', newPatient);
       if(!newPatient.error) {
@@ -77,7 +91,7 @@ const AddAppointment = () => {
       // Set patient name in both state and form value
       setPatientName(fullName);
       setValue('patientName', fullName);
-      
+      setPatientId(newPatient._id);
       setIsModalOpen(false);
       resetPatient(); // Reset patient form
     } catch (error) {
@@ -89,6 +103,7 @@ const AddAppointment = () => {
   const onSubmitAppointment = useCallback(async (data) => {
     try {
       data.doctorId = currentUser;
+      data.patientId = patientId;
       const appointmentData = await createAppointment(data);
       console.log('Appointment created:', appointmentData);
       resetAppointment(); // Reset form after successful submission
@@ -140,7 +155,17 @@ const AddAppointment = () => {
                   </svg>
                 </button>
               </div>
-              {/* Rest of the form remains the same */}
+              <Field
+  label="Select Patient"
+  type="select"
+  regVal="patientSelection"
+  register={register}
+  errors={errors}
+  options={patients.map(patient => ({
+    value: patient._id,
+    label: `${patient.firstname} ${patient.lastname} - ${patient.phonenumber}`
+  }))}
+/>
               <Field
                 label="Appointment Date"
                 placeholder="Select appointment date"
