@@ -41,8 +41,6 @@ const patientSchema = mongoose.Schema({
     {
       appointmentId: {
         type: String,
-        required: true,
-        unique: true,
       },
       doctor: {
         type: mongoose.Schema.Types.ObjectId,
@@ -50,15 +48,12 @@ const patientSchema = mongoose.Schema({
       },
       appointmentDate: {
         type: Date,
-        required: true,
       },
       appointmentTime: {
         type: String,
-        required: true,
       },
       appointmentLocation: {
         type: String,
-        required: true,
       },
       appointmentStatus: {
         type: String,
