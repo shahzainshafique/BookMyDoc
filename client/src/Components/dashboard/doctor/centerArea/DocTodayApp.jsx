@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import Modal from "../../../common/Modal";
 import { FaCalendarTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const DocTodayApp = () => {
   const capitalizeFirstLetter = (str) => {
@@ -108,7 +109,10 @@ const DocTodayApp = () => {
 
     const cancelRes = await cancelAppointment(postData);
 
-    if (cancelRes) await fetchAppointments();
+    if (cancelRes) {
+      toast.success("Appointment Cancelled Successfully!",{    position: "top-center", autoClose: 1500});  
+      await fetchAppointments();
+    }
   };
 
   const handleReschedule = (appointment) => {
@@ -131,6 +135,8 @@ const DocTodayApp = () => {
     const rescheduleRes = await rescheduleAppointment(postData);
 
     if (rescheduleRes) {
+      toast.success("Appointment Rescheduled Successfully!",{    position: "top-center",
+        autoClose: 1500});
       await fetchAppointments();
       setIsRescheduleModalOpen(false);
       setSelectedAppointment(null);

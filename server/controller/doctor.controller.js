@@ -127,15 +127,15 @@ exports.fetchDoctorAppointments = async (req, res) => {
     if (date) {
       // Parse the date string into a Date object
       const appointmentDate = new Date(date);
-    
+
       if (isNaN(appointmentDate.getTime())) {
         return res.status(400).send({ message: "Invalid date format" });
       }
-    
+
       // Get the start and end of the given day (in UTC)
       const startOfDay = new Date(appointmentDate.setUTCHours(0, 0, 0, 0));
       const endOfDay = new Date(appointmentDate.setUTCHours(23, 59, 59, 999));
-    
+
       // Add to query: appointments with appointmentDate between start and end of day
       query["appointments.appointmentDate"] = {
         $gte: startOfDay,
@@ -172,7 +172,7 @@ exports.cancelAppointment = async (req, res) => {
   try {
     const { appointmentId, doctorId, patientId } = req.body;
     const cancellationTime = new Date();
-console.log(req.body)
+    console.log(req.body);
     // Validate inputs
     if (
       !appointmentId ||
@@ -182,13 +182,16 @@ console.log(req.body)
       throw new Error("Invalid appointment or IDs provided");
     }
 
-    
     // Update the doctor's document
     const doctorUpdate = await Doctor.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(doctorId),
-        "appointments.appointmentId": appointmentId,
-        "appointments.appointmentStatus": { $nin: ["completed", "cancelled"] },
+        appointments: {
+          $elemMatch: {
+            appointmentId,
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
+          },
+        },
       },
       {
         $set: { "appointments.$.appointmentStatus": "cancelled" },
@@ -196,15 +199,20 @@ console.log(req.body)
       { session, new: true }
     );
     if (!doctorUpdate) {
-      throw new Error("Doctor or appointment not found, or appointment already completed/cancelled");
+      throw new Error(
+        "Doctor or appointment not found, or appointment already completed/cancelled"
+      );
     }
-
     // Update the patient's document
     const patientUpdate = await Patient.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(patientId),
-        "appointments.appointmentId": appointmentId,
-        "appointments.appointmentStatus": { $nin: ["completed", "cancelled"] },
+        appointments:{
+          $elemMatch:{
+            appointmentId,
+            appointmentStatus: { $nin : ["completed", "cancelled"] },
+          }
+        }
       },
       {
         $set: { "appointments.$.appointmentStatus": "cancelled" },
@@ -212,9 +220,9 @@ console.log(req.body)
       { session, new: true }
     );
 
-    // if (!patientUpdate) {
-    //   throw new Error("Patient or appointment not found, or appointment already completed/cancelled");
-    // }
+    if (!patientUpdate) {
+      throw new Error("Patient or appointment not found, or appointment already completed/cancelled");
+    }
 
     // Calculate cancellation fee
     const appointment = doctorUpdate.appointments.find(
@@ -258,9 +266,6 @@ console.log(req.body)
       .json({ error: error.message || "Internal Server Error" });
   }
 };
-
-
-
 
 exports.rescheduleAppointment = async (req, res) => {
   try {
@@ -458,32 +463,33 @@ exports.createPatient = async (req, res) => {
     console.error("Error creating patient:", error);
     res.status(500).send(error);
   }
-}
+};
 exports.getPatientsByDoc = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    
+
     // Find appointments for this doctor across all patients
     const patientsWithAppointments = await Patient.find({
-      'appointments.doctor': doctorId
-    }).select('firstname lastname phonenumber appointments');
+      "appointments.doctor": doctorId,
+    }).select("firstname lastname phonenumber appointments");
 
     // Transform the results to get unique patients with their appointment details
-    const uniquePatients = patientsWithAppointments.map(patient => ({
+    const uniquePatients = patientsWithAppointments.map((patient) => ({
       _id: patient._id,
       firstname: patient.firstname,
       lastname: patient.lastname,
       phonenumber: patient.phonenumber,
-      appointments: patient.appointments.filter(app => app.doctor.toString() === doctorId)
+      appointments: patient.appointments.filter(
+        (app) => app.doctor.toString() === doctorId
+      ),
     }));
 
     return res.status(200).json(uniquePatients);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error fetching patients:", error);
-    res.status(500).json({ 
-      message: "Error fetching patients", 
-      error: error.message 
+    res.status(500).json({
+      message: "Error fetching patients",
+      error: error.message,
     });
   }
-}
+};
