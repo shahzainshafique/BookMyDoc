@@ -1,10 +1,28 @@
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from "react-redux";
 
 const DocHeader = () => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const docName = useSelector((state) => state.auth.doctorName);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
-      <div className="flex flex-row justify-between p-5 ml-3 items-center">
+      <div className="flex flex-row justify-between p-5 ml-3 items-center relative">
         <div className="flex flex-row space-x-20">
           <h2 className="text-black text-3xl font-semibold">BookMyDoc</h2>
           <div className="flex flex-row items-center">
@@ -27,7 +45,7 @@ const DocHeader = () => {
             />
           </div>
         </div>
-        <div className="flex flex-row items-center space-x-5">
+        <div className="flex flex-row items-center space-x-5 relative">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -42,12 +60,69 @@ const DocHeader = () => {
               d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
             />
           </svg>
-          <img
-            className="h-10 w-10 rounded-full"
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-            alt=""
-          />
-          <h4 className="text-center font-semibold">Dr. {docName}</h4>
+          
+          {/* Profile section with dropdown trigger */}
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <img
+              className="h-10 w-10 rounded-full mr-2"
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+              alt=""
+            />
+            <h4 className="text-center font-semibold">Dr. {docName}</h4>
+          </div>
+
+          {/* Dropdown */}
+          {isDropdownOpen && (
+            <div
+              ref={dropdownRef}
+              className="absolute top-full right-0 mt-2 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
+            >
+              <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                <div>Dr. {docName}</div>
+                <div className="font-medium truncate">doctor@bookmydoc.com</div>
+              </div>
+              <ul
+                className="py-2 text-sm text-gray-700 dark:text-gray-200"
+                aria-labelledby="dropdownUserAvatarButton"
+              >
+                <li>
+                <a
+                    href="#"
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Settings
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Earnings
+                  </a>
+                </li>
+              </ul>
+              <div className="py-2">
+              <a
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                >
+                  Sign out
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
