@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useSelector } from 'react-redux';
+import {  Bounce, toast } from 'react-toastify';
 
 // Components
 import Field from '../../../Components/common/Field';
@@ -83,8 +84,19 @@ const AddAppointment = () => {
       } 
       const newPatient = await addPatient(data);  
       console.log('New patient:', newPatient);
+      
       if(!newPatient.error) {
-        alert('Patient added successfully');
+        toast.success('Patient Added!', {
+          position: "top-center",
+          autoClose: 1500,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
       }
       const fullName = `${data.firstname} ${data.lastname}`;
       
@@ -106,6 +118,17 @@ const AddAppointment = () => {
       data.patientId = patientId;
       console.log('Appointment data:', data);
       const appointmentData = await createAppointment(data);
+      toast.success('Appointment Created!', {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+        });
       console.log('Appointment created:', appointmentData);
       resetAppointment(); // Reset form after successful submission
       setPatientName(''); 
@@ -118,8 +141,9 @@ const AddAppointment = () => {
   // Modal toggle handlers
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
-
   const handleInputChange = (e) => {
+    console.log('e:', e.target.value);
+    
     const value = e.target.value;
     setPatientName(value);
 console.log('value:', value);
@@ -147,6 +171,7 @@ console.log('patients:', patients);
         <DocSidebar />
         <section className="flex flex-col bg-gray-100 rounded-3xl m-5 p-5 space-y-7 w-3/5">
           <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-xl w-3/5">
+
             <form onSubmit={handleSubmit(onSubmitAppointment)} className="space-y-4">
               <div className="flex flex-row items-center justify-center">
                 <Field

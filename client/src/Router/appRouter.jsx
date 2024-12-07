@@ -8,9 +8,12 @@ import DoctorDashboard from "../Pages/dashboard/doctor/doctorDashboard";
 import RegisterPatient from "../Pages/auth/patient/RegisterPatient";
 import LoginPatient from "../Pages/auth/patient/LoginPatient";
 import AddAppointment from "../Pages/dashboard/doctor/AddAppointment";
+import { ToastContainer } from "react-toastify";
 
 const AppRouter = () => {
   return (
+    <>
+    <ToastContainer />
     <Router>
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -37,6 +40,7 @@ const AppRouter = () => {
         />{" "}
       </Routes>
     </Router>
+    </>
   );
 };
 
