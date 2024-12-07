@@ -35,7 +35,7 @@ const AddAppointment = () => {
   const [patientName, setPatientName] = useState('');
   const [patientId, setPatientId] = useState('');
   const [patients, setPatients] = useState([]);
-
+  const [suggestions, setSuggestions] = useState([]); // To track matching suggestions
   // Appointment form hooks
   const {
     register,
@@ -104,10 +104,11 @@ const AddAppointment = () => {
     try {
       data.doctorId = currentUser;
       data.patientId = patientId;
+      console.log('Appointment data:', data);
       const appointmentData = await createAppointment(data);
       console.log('Appointment created:', appointmentData);
       resetAppointment(); // Reset form after successful submission
-      setPatientName(''); // Clear patient name after submission
+      setPatientName(''); 
     } catch (error) {
       console.error('Error creating appointment:', error);
       // Consider adding user-friendly error handling
@@ -118,6 +119,27 @@ const AddAppointment = () => {
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setPatientName(value);
+console.log('value:', value);
+console.log('patients:', patients); 
+    // Filter suggestions
+    if (value) {
+      const filtered = patients.filter((patient) => {
+        const fullName = `${patient.firstname} ${patient.lastname}`.toLowerCase();
+        return fullName.includes(value.toLowerCase());
+      });
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  };
+  const handleSuggestionClick = (patient) => {
+    setValue('patientName', `${patient.firstname} ${patient.lastname}`);
+    setPatientId(patient._id);
+    setSuggestions([]); // Clear suggestions after selecting
+  };
   return (
     <>
       <DocHeader />
@@ -133,8 +155,9 @@ const AddAppointment = () => {
                   type="text"
                   regVal="patientName"
                   register={register}
-                  value={patientName} // Ensure value is bound to state
+                  value={patientName} 
                   errors={errors}
+                  onChange={handleInputChange}
                 />
                 <button
                   type="button"
@@ -155,17 +178,30 @@ const AddAppointment = () => {
                   </svg>
                 </button>
               </div>
-              <Field
-  label="Select Patient"
-  type="select"
-  regVal="patientSelection"
-  register={register}
-  errors={errors}
-  options={patients.map(patient => ({
-    value: patient._id,
-    label: `${patient.firstname} ${patient.lastname} - ${patient.phonenumber}`
-  }))}
-/>
+                {suggestions.length > 0 && (
+  <ul className="absolute z-10 w-1/5 mt-1 border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto bg-white">
+    {suggestions.map((patient) => (
+      <li
+        key={patient._id}
+        className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200 
+                   active:bg-blue-100 focus:outline-none focus:bg-blue-50"
+        onClick={() => handleSuggestionClick(patient)}
+      >
+        <div className="flex justify-between items-center">
+          <span className="text-gray-800">
+            {`${patient.firstname} ${patient.lastname}`}
+          </span>
+          {patient.additionalInfo && (
+            <span className="text-xs text-gray-500">
+              {patient.additionalInfo}
+            </span>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+)}
+
               <Field
                 label="Appointment Date"
                 placeholder="Select appointment date"

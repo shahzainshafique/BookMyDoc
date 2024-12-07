@@ -34,11 +34,11 @@ exports.loginDoctor = async (req, res) => {
         return res.status(401).send({ error: "Wrong Password!" });
       }
       const token = jwt.sign({ id: doctor._id }, JWT_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "1d",
       });
       return res
         .status(200)
-        .send({ doctor, token, expiresIn: "14400", userType: "doctor" });
+        .send({ doctor, token, expiresIn: "86400", userType: "doctor" });
     });
   } catch (error) {
     res.status(500).send(error);
@@ -182,6 +182,7 @@ console.log(req.body)
       throw new Error("Invalid appointment or IDs provided");
     }
 
+    
     // Update the doctor's document
     const doctorUpdate = await Doctor.findOneAndUpdate(
       {

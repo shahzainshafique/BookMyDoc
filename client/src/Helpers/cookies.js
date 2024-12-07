@@ -11,7 +11,7 @@ export const getCookie = (name) => {
 
 export const setCookie = (name, value, expiresInSeconds) => {
   const date = new Date();
-  date.setTime(date.getTime() + expiresInSeconds * 1000);
+  date.setTime(date.getTime() + expiresInSeconds);
   const expires = "; expires=" + date.toUTCString();
   document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
 };
