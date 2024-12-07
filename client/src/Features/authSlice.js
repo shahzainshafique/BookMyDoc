@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const authSlice = createSlice({
   name: "auth",
   initialState: {
+    doctorName: "",
     currentUser: null,
     loading: false,
     userId: "",
@@ -19,6 +20,7 @@ const authSlice = createSlice({
       console.log("act", action);
       state.loading = false;
       state.currentUser = action?.payload?.doctor?.email;
+      state.doctorName = `${action?.payload?.doctor?.firstname} ${action?.payload?.doctor?.lastname}`; 
       state.userId = action?.payload?.doctor?._id;
       state.token = action?.payload?.token || "";
       state.userType = action?.payload?.userType || "";

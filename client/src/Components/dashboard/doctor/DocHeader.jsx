@@ -1,4 +1,7 @@
+import { useSelector } from "react-redux";
+
 const DocHeader = () => {
+  const docName = useSelector((state) => state.auth.doctorName);
   return (
     <>
       <div className="flex flex-row justify-between p-5 ml-3 items-center">
@@ -44,7 +47,7 @@ const DocHeader = () => {
             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
             alt=""
           />
-          <h4 className="text-center font-semibold">Dr. Farhan Khan</h4>
+          <h4 className="text-center font-semibold">Dr. {docName}</h4>
         </div>
       </div>
     </>
