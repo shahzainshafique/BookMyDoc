@@ -5,7 +5,7 @@ const DocHeader = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const docName = useSelector((state) => state.auth.doctorName);
-
+  const doctorImage = useSelector((state) => state.auth.doctorProfileImage);
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -68,7 +68,7 @@ const DocHeader = () => {
           >
             <img
               className="h-10 w-10 rounded-full mr-2"
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+              src={doctorImage}
               alt=""
             />
             <h4 className="text-center font-semibold">Dr. {docName}</h4>

@@ -1,9 +1,76 @@
 const { default: mongoose } = require("mongoose");
+const multer = require("multer");
 const Doctor = require("../models/Doctors.model");
 const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const JWT_SECRET = process.env.JWT_SECRET;
+const fs = require("fs");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only .jpeg or .png files are allowed!"));
+    }
+  },
+});
+module.exports.upload = upload;
+
+exports.updateDoctorProfile = async (req, res) => {
+  const { doctorId } = req.params;
+  const updateData = req.body;
+  try {
+    // Find the doctor to get the existing profile image
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found." });
+    }
+
+    // If a new image is uploaded, remove the old one
+    if (req.file) {
+      const newImagePath = `uploads/${req.file.filename}`;
+
+      // Check if there's an existing image and delete it
+      if (doctor.profileImage) {
+        const oldImagePath = path.join(__dirname, "../", doctor.profileImage);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath); // Delete the old image
+        }
+      }
+
+      // Set the new image path
+      updateData.profileImage = newImagePath;
+    }
+
+    // Update the doctor's profile
+    const updatedDoctor = await Doctor.findByIdAndUpdate(doctorId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Doctor profile updated.", doctor: updatedDoctor });
+  } catch (error) {
+    console.error("Error updating doctor profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.createDoctor = async (req, res) => {
   try {
@@ -207,12 +274,12 @@ exports.cancelAppointment = async (req, res) => {
     const patientUpdate = await Patient.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(patientId),
-        appointments:{
-          $elemMatch:{
+        appointments: {
+          $elemMatch: {
             appointmentId,
-            appointmentStatus: { $nin : ["completed", "cancelled"] },
-          }
-        }
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
+          },
+        },
       },
       {
         $set: { "appointments.$.appointmentStatus": "cancelled" },
@@ -221,7 +288,9 @@ exports.cancelAppointment = async (req, res) => {
     );
 
     if (!patientUpdate) {
-      throw new Error("Patient or appointment not found, or appointment already completed/cancelled");
+      throw new Error(
+        "Patient or appointment not found, or appointment already completed/cancelled"
+      );
     }
 
     // Calculate cancellation fee

@@ -45,7 +45,7 @@ const DocTodayApp = () => {
 
   const { getTodayAppointments, cancelAppointment, rescheduleAppointment } =
     useDocCall();
-  const doctorId = useSelector((state) => state.auth.userId);
+  const doctorId = useSelector((state) => state.auth.doctorId);
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);

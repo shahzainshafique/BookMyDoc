@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+const url = import.meta.env.VITE_BACKEND_URL;
 
 const authSlice = createSlice({
   name: "auth",
@@ -6,7 +7,8 @@ const authSlice = createSlice({
     doctorName: "",
     currentUser: null,
     loading: false,
-    userId: "",
+    doctorId: "",
+    doctorProfileImage: "",
     error: false,
     token: null,
     userType: null,
@@ -21,7 +23,8 @@ const authSlice = createSlice({
       state.loading = false;
       state.currentUser = action?.payload?.doctor?.email;
       state.doctorName = `${action?.payload?.doctor?.firstname} ${action?.payload?.doctor?.lastname}`; 
-      state.userId = action?.payload?.doctor?._id;
+      state.doctorProfileImage = url+"/"+action?.payload?.doctor?.profileImage;
+      state.doctorId = action?.payload?.doctor?._id;
       state.token = action?.payload?.token || "";
       state.userType = action?.payload?.userType || "";
     },

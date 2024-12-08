@@ -3,9 +3,9 @@ import { useSelector } from "react-redux";
 
 const useDocCall = () => {
   const url = import.meta.env.VITE_BACKEND_URL;
+  const doctorId = useSelector((state) => state.auth.doctorId);
   const { token } = useSelector((state) => state.auth);
-
-  const getTodayAppointments = async (doctorId) => {
+  const getTodayAppointments = async () => {
     try {
       const today = new Date().toISOString().split("T")[0];
       console.log(today);
@@ -103,7 +103,28 @@ const useDocCall = () => {
       console.log(error);
     }
   }
-  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment, addPatient,getPatients  };
+  const updateDoctor = async (docData) => {
+    try {
+      console.log("doctorId", doctorId);
+      const { data } = await axios.post(
+        `${url}/api/doctor/update-doctor-profile/${doctorId}`,
+        docData,
+        {
+          headers: {
+            Authorization: token,
+            "Content-Type": "multipart/form-data", // Required for file uploads
+          },
+        }
+      );
+      return data;
+    } catch (error) {
+      console.error("Error updating doctor profile:", error);
+      throw error;
+    }
+  }
+  return { getTodayAppointments, cancelAppointment, rescheduleAppointment, createAppointment, addPatient,getPatients, updateDoctor  };
 };
+
+
 
 export default useDocCall;

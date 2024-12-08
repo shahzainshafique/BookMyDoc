@@ -61,7 +61,7 @@ const AddAppointment = () => {
     resolver: yupResolver(patientSchema),
   });
 
-  const currentUser = useSelector((state) => state.auth.userId);
+  const currentUser = useSelector((state) => state.auth.doctorId);
   const { createAppointment, addPatient, getPatients } = useDocCall();
   //Load patients
   useEffect(() => {
