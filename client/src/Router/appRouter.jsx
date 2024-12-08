@@ -9,6 +9,7 @@ import RegisterPatient from "../Pages/auth/patient/RegisterPatient";
 import LoginPatient from "../Pages/auth/patient/LoginPatient";
 import AddAppointment from "../Pages/dashboard/doctor/AddAppointment";
 import { ToastContainer } from "react-toastify";
+import Profile from "../Pages/dashboard/doctor/Profile";
 
 const AppRouter = () => {
   return (
@@ -37,7 +38,15 @@ const AppRouter = () => {
               <AddAppointment />
             </ProtectedRoute>
           }
-        />{" "}
+        />
+        <Route
+          path="/doctor/profile"
+          element={
+            <ProtectedRoute redirectUrl={"/logindoc"} allowedUser={"doctor"}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
     </>

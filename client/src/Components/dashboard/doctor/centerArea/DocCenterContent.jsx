@@ -1,5 +1,5 @@
-import DocDashStats from "./centerArea/DocDashStats";
-import DocTodayApp from "./centerArea/DocTodayApp";
+import DocDashStats from "./DocDashStats";
+import DocTodayApp from "./DocTodayApp";
 
 const DocCenterContent = () => {
   return (
