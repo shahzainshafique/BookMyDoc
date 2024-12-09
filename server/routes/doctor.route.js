@@ -10,7 +10,7 @@ const {
   createPatient,
   getPatientsByDoc,
   updateDoctorProfile,
-  upload
+  upload,
 } = require("../controller/doctor.controller");
 // const multer  = require('multer')
 // const upload = multer({ dest: 'uploads/' })
