@@ -69,7 +69,7 @@ const DocTodayApp = () => {
     if (Array.isArray(docApps)) {
       const formattedData = docApps.map((appointment) => ({
         ...appointment,
-        name: `${appointment.patient?.firstname || ''} ${appointment.patient?.lastname || ''}`,
+        name: ()=><strong>{appointment.patient?.firstname || ''} {appointment.patient?.lastname || ''}</strong>,
         time: appointment.appointmentTime || "N/A",
         location: appointment.appointmentLocation || "N/A",
         status: getStatusLabel(appointment.appointmentStatus),
