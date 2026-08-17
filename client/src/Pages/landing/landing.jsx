@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 import DangerousHTML from "react-dangerous-html";
@@ -7,9 +6,9 @@ import { Helmet } from "react-helmet";
 import Features from "../../Components/landing/features.jsx";
 import Practice from "../../Components/landing/practice.jsx";
 import Doctor from "../../Components/landing/doctor.jsx";
-import "./Landing.css";
+import "./landing.css";
 
-const Landing = (props) => {
+const Landing = () => {
   return (
     <div className="home-container">
       <Helmet>
@@ -154,6 +153,9 @@ const Landing = (props) => {
               <a href="#schedule" className="home-link03">
                 Contact
               </a>
+              <a href="/logindoc" className="home-link">
+                For Doctors
+              </a>
             </nav>
           </div>
           <div data-thq="thq-navbar-btn-group" className="home-right">
@@ -165,7 +167,7 @@ const Landing = (props) => {
               />
               <span className="home-text06">+0 123-456-789</span>
             </button>
-            <a href="/regDoc" className="home-book button button-main">
+            <a href="/patient/login" className="home-book button button-main">
               <img
                 alt="image"
                 src="/Icons/calendar.svg"
@@ -206,7 +208,7 @@ const Landing = (props) => {
                 <span className="home-text09">How it works</span>
                 <span className="home-text10">Prices</span>
                 <span className="home-text11">Contact</span>
-                <a href="#book" className="home-book1 button button-main">
+                <a href="/patient/login" className="home-book1 button button-main">
                   <img
                     alt="image"
                     src="/Icons/calendar.svg"
@@ -229,14 +231,14 @@ const Landing = (props) => {
                 eiusmod tempor incididunt.
               </p>
             </div>
-            <button className="button button-main home-book2">
+            <a href="/patient/login" className="button button-main home-book2">
               <img
                 alt="image"
                 src="/Icons/calendar.svg"
                 className="home-image10"
               />
               <span>Book an appointment</span>
-            </button>
+            </a>
           </div>
           <div className="home-image11">
             <img

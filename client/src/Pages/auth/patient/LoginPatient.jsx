@@ -25,7 +25,7 @@ export default function LoginDoc() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log(formData);
-    const loginRes = await loginPatient(formData);
+    await loginPatient(formData);
 
     //TO DO: Add error display handling on frontend
     // if (loginRes.error) {
@@ -59,7 +59,7 @@ export default function LoginDoc() {
             >
               <div>
                 <label
-                  for="email"
+                  htmlFor="email"
                   className="block mb-2 text-sm font-medium text-gray-900 light:text-white"
                 >
                   Your email
@@ -77,7 +77,7 @@ export default function LoginDoc() {
               </div>
               <div>
                 <label
-                  for="password"
+                  htmlFor="password"
                   className="block mb-2 text-sm font-medium text-gray-900 light:text-white"
                 >
                   Password
@@ -106,7 +106,7 @@ export default function LoginDoc() {
                 </div>
                 <div className="ml-2 text-sm">
                   <label
-                    for="terms"
+                    htmlFor="terms"
                     className="font-light text-gray-500 light:text-gray-300"
                   >
                     Keep me Signed in!
@@ -120,9 +120,9 @@ export default function LoginDoc() {
                 Sign in
               </button>
               <p className="text-sm font-light text-gray-500 light:text-gray-400">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <a
-                  href="/regdoc"
+                  href="/patient/signup"
                   className="font-medium text-primary-600 hover:underline light:text-primary-500"
                 >
                   Signup here

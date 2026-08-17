@@ -58,7 +58,7 @@ const patientSchema = mongoose.Schema({
       },
       appointmentStatus: {
         type: String,
-        enum: ["pending", "cancelled", "completed"],
+        enum: ["pending", "cancelled", "completed", "rescheduled"],
         default: "pending",
       },
     },

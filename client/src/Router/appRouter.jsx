@@ -10,6 +10,8 @@ import LoginPatient from "../Pages/auth/patient/LoginPatient";
 import AddAppointment from "../Pages/dashboard/doctor/AddAppointment";
 import { ToastContainer } from "react-toastify";
 import Profile from "../Pages/dashboard/doctor/Profile";
+import PatientDashboard from "../Pages/dashboard/patient/PatientDashboard";
+import MyAppointments from "../Pages/dashboard/patient/MyAppointments";
 
 const AppRouter = () => {
   return (
@@ -44,6 +46,28 @@ const AppRouter = () => {
           element={
             <ProtectedRoute redirectUrl={"/logindoc"} allowedUser={"doctor"}>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patientdash"
+          element={
+            <ProtectedRoute
+              redirectUrl={"/patient/login"}
+              allowedUser={"patient"}
+            >
+              <PatientDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patient/appointments"
+          element={
+            <ProtectedRoute
+              redirectUrl={"/patient/login"}
+              allowedUser={"patient"}
+            >
+              <MyAppointments />
             </ProtectedRoute>
           }
         />

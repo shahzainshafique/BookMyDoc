@@ -4,19 +4,17 @@ import {
   fetchFail,
   fetchStart,
   loginSuccess,
-  logoutSuccess,
   registerSuccess,
 } from "../Features/authSlice";
 import { setCookie } from "../Helpers/cookies";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 const url = import.meta.env.VITE_BACKEND_URL;
 
 const useAuthCall = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { token } = useSelector((state) => state.auth);
 
   const regDoctor = async (userData) => {
     dispatch(fetchStart());
@@ -58,12 +56,12 @@ const useAuthCall = () => {
       console.log(data);
       if (!data.error) {
         dispatch(registerSuccess(data));
-        // navigate("/doctor");
       }
+      return data;
     } catch (error) {
-      alert(error.response.data.error);
-      dispatch(fetchFail());
       console.log(error);
+      dispatch(fetchFail());
+      return { error: error?.response?.data?.error || "Signup failed" };
     }
   };
   const loginPatient = async (userData) => {
@@ -75,7 +73,7 @@ const useAuthCall = () => {
         dispatch(loginSuccess(data));
         setCookie("authToken", data.token, data.expiresIn);
         setCookie("userType", data.userType, data.expiresIn);
-        // navigate("/docdash");
+        navigate("/patientdash");
       }
       return data;
     } catch (error) {
@@ -102,7 +100,7 @@ const useAuthCall = () => {
   const verifyOtp = async (otpData) => {
     try {
       console.log(otpData);
-      const { data, status } = await axios.post(
+      const { data } = await axios.post(
         `${url}/api/otp/verify-otp`,
         otpData
       );

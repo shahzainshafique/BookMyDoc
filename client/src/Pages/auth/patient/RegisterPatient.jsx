@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthCall from "../../../Hooks/useAuthCall";
 
 const RegisterPatient = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
@@ -25,12 +26,13 @@ const RegisterPatient = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await regPatient(formData);
-      setSuccess("Signup successful!");
+    const response = await regPatient(formData);
+    if (response && !response.error) {
+      setSuccess("Signup successful! Redirecting to login...");
       setError("");
-    } catch (error) {
-      setError("Signup failed. " + error.response.data.message);
+      setTimeout(() => navigate("/patient/login"), 1200);
+    } else {
+      setError(response?.error || "Signup failed. Please try again.");
       setSuccess("");
     }
   };
@@ -142,6 +144,15 @@ const RegisterPatient = () => {
             Sign Up
           </button>
         </div>
+        <p className="text-sm text-gray-600 mt-4">
+          Already have an account?{" "}
+          <a
+            href="/patient/login"
+            className="font-medium text-blue-600 hover:underline"
+          >
+            Login here
+          </a>
+        </p>
       </form>
     </div>
   );
