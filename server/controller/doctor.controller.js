@@ -533,6 +533,37 @@ exports.createPatient = async (req, res) => {
     res.status(500).send(error);
   }
 };
+// Public-facing list of doctors used by patients to browse and book.
+// Supports optional ?search= (name/specialization) and ?specialization= filters.
+exports.getAllDoctors = async (req, res) => {
+  try {
+    const { search, specialization } = req.query;
+    const query = {};
+
+    if (specialization) {
+      query.specialization = specialization;
+    }
+
+    if (search) {
+      query.$or = [
+        { firstname: { $regex: search, $options: "i" } },
+        { lastname: { $regex: search, $options: "i" } },
+        { specialization: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Only expose non-sensitive fields (never password/appointments/waitlist).
+    const doctors = await Doctor.find(query).select(
+      "firstname lastname specialization profileImage availableSlots"
+    );
+
+    return res.status(200).send(doctors);
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 exports.getPatientsByDoc = async (req, res) => {
   try {
     const { doctorId } = req.params;

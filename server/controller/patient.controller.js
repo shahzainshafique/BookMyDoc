@@ -1,6 +1,7 @@
 const Patient = require("../models/Patients.model");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 const Doctor = require("../models/Doctors.model");
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -11,8 +12,12 @@ exports.createPatient = async (req, res) => {
     const patient = new Patient(req.body);
     await patient.save();
     return res.status(200).send(patient);
-  } catch (exp) {
-    res.sendStatus(500);
+  } catch (error) {
+    console.error("Error creating patient:", error);
+    if (error.code === 11000) {
+      return res.status(409).send({ error: "Email already exists!" });
+    }
+    return res.status(500).send({ error: "Internal Server Error" });
   }
 };
 
@@ -23,14 +28,13 @@ exports.loginPatient = async (req, res) => {
       return res.status(400).send({ error: "User not found" });
     }
     patient.comparePassword(req.body.password, (err, isMatch) => {
-      if (!!err || !!isMatch) {
-        console.log(err);
-        return res.status(400).send({ error: err });
+      // Reject on hashing error OR when the password does not match.
+      if (err || !isMatch) {
+        return res.status(401).send({ error: "Wrong Password!" });
       }
       const token = jwt.sign({ id: patient._id }, JWT_SECRET, {
         expiresIn: "1h",
       });
-      console.log(token);
       return res
         .status(200)
         .send({ patient, token, expiresIn: "3600", userType: "patient" });
@@ -43,39 +47,43 @@ exports.loginPatient = async (req, res) => {
 
 exports.bookAppointment = async (req, res) => {
   try {
+    // The authenticated patient can only book for themselves.
+    const patientId = req.user.id;
     const {
-      patientId,
       doctorId,
       appointmentDate,
       appointmentTime,
       appointmentLocation,
     } = req.body;
 
-    // Start the timer
-    const startTime = new Date();
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).send({ error: "Invalid doctor ID" });
+    }
+    if (!appointmentDate || !appointmentTime) {
+      return res
+        .status(400)
+        .send({ error: "Appointment date and time are required" });
+    }
 
-    // Check for conflicting appointments in the Doctor's collection
+    // Location is required by the schema; default to the clinic when omitted.
+    const location = appointmentLocation || "Clinic";
+
+    // A shared id keeps the doctor's and patient's copies of the
+    // appointment in sync so it can later be cancelled/rescheduled.
+    const appointmentId = uuidv4();
+
+    // Check for a conflicting (non-cancelled) appointment for this doctor.
     const conflictingAppointment = await Doctor.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(doctorId),
-        },
-      },
-      {
-        $unwind: "$appointments",
-      },
+      { $match: { _id: new mongoose.Types.ObjectId(doctorId) } },
+      { $unwind: "$appointments" },
       {
         $match: {
           "appointments.appointmentDate": new Date(appointmentDate),
           "appointments.appointmentTime": appointmentTime,
+          "appointments.appointmentStatus": { $ne: "cancelled" },
         },
       },
     ]);
-
-    // End the timer
-    const endTime = new Date();
-    const timeTaken = endTime - startTime;
-    console.log(`Aggregation pipeline took ${timeTaken}ms to execute`);
 
     if (conflictingAppointment.length > 0) {
       return res.status(400).send({
@@ -94,10 +102,11 @@ exports.bookAppointment = async (req, res) => {
         {
           $push: {
             appointments: {
+              appointmentId,
               doctor: doctorId,
               appointmentDate,
               appointmentTime,
-              appointmentLocation,
+              appointmentLocation: location,
             },
           },
         },
@@ -110,10 +119,11 @@ exports.bookAppointment = async (req, res) => {
         {
           $push: {
             appointments: {
+              appointmentId,
               patient: patientId,
               appointmentDate,
               appointmentTime,
-              appointmentLocation,
+              appointmentLocation: location,
             },
           },
         },
@@ -125,12 +135,13 @@ exports.bookAppointment = async (req, res) => {
       session.endSession();
 
       return res.status(201).send({
-        message: `Appointment booked successfully in ${timeTaken}ms`,
+        message: "Appointment booked successfully",
         appointment: {
+          appointmentId,
           doctor: doctorId,
           appointmentDate,
           appointmentTime,
-          appointmentLocation,
+          appointmentLocation: location,
         },
       });
     } catch (error) {
@@ -145,187 +156,219 @@ exports.bookAppointment = async (req, res) => {
   }
 };
 
-exports.cancelAppointment = async (req, res) => {
+// Return the authenticated patient's appointments with doctor details.
+exports.getPatientAppointments = async (req, res) => {
   try {
-    const { patientId, doctorId, appointmentDate, appointmentTime } = req.body;
+    const patientId = req.user.id;
 
-    const cancellationTime = new Date();
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const patient = await Patient.findById(patientId).populate({
+      path: "appointments.doctor",
+      select: "firstname lastname specialization profileImage",
+    });
 
-    try {
-      // Find and update the appointment status in the patient's record
-      await Patient.findOneAndUpdate(
-        {
-          _id: patientId,
-          "appointments.doctor": doctorId,
-          "appointments.appointmentDate": new Date(appointmentDate),
-          "appointments.appointmentTime": appointmentTime,
-        },
-        {
-          $set: { "appointments.$.appointmentStatus": "cancelled" },
-        },
-        { session }
-      );
-
-      // Find and update the appointment status in the doctor's record
-      await Doctor.findOneAndUpdate(
-        {
-          _id: doctorId,
-          "appointments.patient": patientId,
-          "appointments.appointmentDate": new Date(appointmentDate),
-          "appointments.appointmentTime": appointmentTime,
-        },
-        {
-          $set: { "appointments.$.appointmentStatus": "cancelled" },
-        },
-        { session }
-      );
-
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      // Calculate cancellation fee
-      const appointmentDateTime = new Date(
-        `${appointmentDate}T${appointmentTime}`
-      );
-      const hoursUntilAppointment =
-        (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
-
-      let cancellationFee = 0;
-      if (hoursUntilAppointment < 1) {
-        cancellationFee = 50;
-      } else if (hoursUntilAppointment < 24) {
-        cancellationFee = 25;
-      } else {
-        cancellationFee = 10;
-      }
-
-      return res.status(200).send({
-        message: "Appointment cancelled successfully",
-        cancellationFee,
-      });
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
+    if (!patient) {
+      return res.status(404).send({ error: "Patient not found" });
     }
+
+    // Newest appointments first.
+    const appointments = [...patient.appointments].sort(
+      (a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate)
+    );
+
+    return res.status(200).send({ appointments });
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
-exports.getPatientsAppointment = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const totalAppointments = await Patient.aggregate([
-      {
-        $match: {
-          email: email, // Replace with the patient's email or other identifier
-        },
-      },
-      {
-        $unwind: "$appointments",
-      },
-      {
-        $match: {
-          "appointments.appointmentDate": { $gte: new Date() }, // Only future appointments
-        },
-      },
-      {
-        $project: {
-          firstname: 1,
-          lastname: 1,
-          appointmentDate: "$appointments.appointmentDate",
-          appointmentTime: "$appointments.appointmentTime",
-          appointmentLocation: "$appointments.appointmentLocation",
-        },
-      },
-      {
-        $sort: {
-          "appointments.appointmentDate": 1, // Sort by appointment date (ascending)
-        },
-      },
-    ]);
 
-    if (!totalAppointments) {
-      return res.status(404).send({ message: "No Appointments Found" });
+exports.cancelAppointment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const patientId = req.user.id;
+    const { appointmentId, doctorId } = req.body;
+    const cancellationTime = new Date();
+
+    if (
+      !appointmentId ||
+      !mongoose.Types.ObjectId.isValid(doctorId) ||
+      !mongoose.Types.ObjectId.isValid(patientId)
+    ) {
+      throw new Error("Invalid appointment or IDs provided");
     }
+
+    // Update the patient's copy of the appointment.
+    const patientUpdate = await Patient.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(patientId),
+        appointments: {
+          $elemMatch: {
+            appointmentId,
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
+          },
+        },
+      },
+      { $set: { "appointments.$.appointmentStatus": "cancelled" } },
+      { session, new: true }
+    );
+
+    if (!patientUpdate) {
+      throw new Error(
+        "Appointment not found, or already completed/cancelled"
+      );
+    }
+
+    // Update the doctor's copy of the appointment.
+    const doctorUpdate = await Doctor.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(doctorId),
+        appointments: {
+          $elemMatch: {
+            appointmentId,
+            appointmentStatus: { $nin: ["completed", "cancelled"] },
+          },
+        },
+      },
+      { $set: { "appointments.$.appointmentStatus": "cancelled" } },
+      { session, new: true }
+    );
+
+    if (!doctorUpdate) {
+      throw new Error(
+        "Appointment not found on the doctor's record, or already completed/cancelled"
+      );
+    }
+
+    // Calculate cancellation fee based on notice given.
+    const appointment = patientUpdate.appointments.find(
+      (appt) => appt.appointmentId === appointmentId
+    );
+    const appointmentDateTime = new Date(appointment.appointmentDate);
+    if (appointment.appointmentTime) {
+      appointmentDateTime.setHours(...appointment.appointmentTime.split(":"));
+    }
+    const hoursUntilAppointment =
+      (appointmentDateTime - cancellationTime) / (1000 * 60 * 60);
+
+    let cancellationFee = 0;
+    if (hoursUntilAppointment < 1) {
+      cancellationFee = 50;
+    } else if (hoursUntilAppointment < 24) {
+      cancellationFee = 25;
+    } else {
+      cancellationFee = 10;
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).send({
+      message: "Appointment cancelled successfully",
+      cancellationFee,
+    });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    throw error;
+    console.error("Error cancelling appointment:", error);
+    return res
+      .status(500)
+      .send({ error: error.message || "Internal Server Error" });
   }
 };
 
 exports.reScheduleAppointment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
+    const patientId = req.user.id;
     const {
-      patientId,
+      appointmentId,
       doctorId,
-      oldAppointmentDate,
-      oldAppointmentTime,
       newAppointmentDate,
       newAppointmentTime,
     } = req.body;
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const patientUpdate = await Patient.findOneAndUpdate(
-        {
-          _id: new mongoose.Types.ObjectId(patientId),
-          "appointments.doctor": new mongoose.Types.ObjectId(doctorId),
-          "appointments.appointmentDate": new Date(oldAppointmentDate),
-          "appointments.appointmentTime": oldAppointmentTime,
-        },
-        {
-          $set: {
-            "appointments.$.appointmentDate": new Date(newAppointmentDate),
-            "appointments.$.appointmentTime": newAppointmentTime,
-            "appointments.$.appointmentStatus": "rescheduled",
-          },
-        },
-        { session, new: true }
-      );
-      console.log(patientUpdate);
-      if (!patientUpdate) {
-        return res
-          .status(404)
-          .send({ message: "Appointment not found for the patient" });
-      }
+    if (
+      !appointmentId ||
+      !mongoose.Types.ObjectId.isValid(doctorId) ||
+      !newAppointmentDate ||
+      !newAppointmentTime
+    ) {
+      throw new Error("Missing or invalid reschedule details");
+    }
 
-      const doctorUpdate = await Doctor.findOneAndUpdate(
-        {
-          _id: new mongoose.Types.ObjectId(doctorId),
-          "appointments.appointmentDate": new Date(oldAppointmentDate),
-          "appointments.appointmentTime": oldAppointmentTime,
+    // Reject if the doctor is already booked at the new slot.
+    const conflict = await Doctor.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(doctorId) } },
+      { $unwind: "$appointments" },
+      {
+        $match: {
+          "appointments.appointmentId": { $ne: appointmentId },
+          "appointments.appointmentDate": new Date(newAppointmentDate),
+          "appointments.appointmentTime": newAppointmentTime,
+          "appointments.appointmentStatus": { $ne: "cancelled" },
         },
-        {
-          $set: {
-            "appointments.$.appointmentDate": new Date(newAppointmentDate),
-            "appointments.$.appointmentTime": newAppointmentTime,
-            "appointments.$.appointmentStatus": "rescheduled",
-          },
-        },
-        { session, new: true }
-      );
+      },
+    ]);
 
-      if (!doctorUpdate) {
-        return res
-          .status(404)
-          .send({ message: "Appointment not found for the doctor!" });
-      }
-      await session.commitTransaction();
+    if (conflict.length > 0) {
+      await session.abortTransaction();
       session.endSession();
       return res
-        .status(200)
-        .send({ message: "Appointment rescheduled successfully" });
-    } catch (error) {
-      return res.status(500).send({ error });
+        .status(400)
+        .send({ error: "Doctor is already booked at the new time" });
     }
+
+    const patientUpdate = await Patient.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(patientId),
+        "appointments.appointmentId": appointmentId,
+      },
+      {
+        $set: {
+          "appointments.$.appointmentDate": new Date(newAppointmentDate),
+          "appointments.$.appointmentTime": newAppointmentTime,
+          "appointments.$.appointmentStatus": "rescheduled",
+        },
+      },
+      { session, new: true }
+    );
+
+    if (!patientUpdate) {
+      throw new Error("Appointment not found for the patient");
+    }
+
+    const doctorUpdate = await Doctor.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(doctorId),
+        "appointments.appointmentId": appointmentId,
+      },
+      {
+        $set: {
+          "appointments.$.appointmentDate": new Date(newAppointmentDate),
+          "appointments.$.appointmentTime": newAppointmentTime,
+          "appointments.$.appointmentStatus": "rescheduled",
+        },
+      },
+      { session, new: true }
+    );
+
+    if (!doctorUpdate) {
+      throw new Error("Appointment not found for the doctor");
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+    return res
+      .status(200)
+      .send({ message: "Appointment rescheduled successfully" });
   } catch (error) {
-    return res.status(500).send({ error });
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error rescheduling appointment:", error);
+    return res
+      .status(500)
+      .send({ error: error.message || "Internal Server Error" });
   }
 };
